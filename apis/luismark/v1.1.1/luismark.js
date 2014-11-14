@@ -1,4 +1,4 @@
-// Luismark API in Javascript version 1.1.0 (development)
+// Luismark API in Javascript version 1.1.1 (development)
 // Includes Base85 (https://github.com/noseglid/base85)
 
 function LuismarkUtils() {
@@ -139,10 +139,10 @@ LuismarkUtils.prototype.Initialise = function(){
       var b="",c1,c2,c3,e1,e2,e3,e4,c=0;
       a = a.replace(/[^A-Za-z0-9\+\/\=]/g,"");
       while(c < a.length){
-        e1 = Sz.indexOf(a.indexOf(c++));
-        e2 = Sz.indexOf(a.indexOf(c++));
-        e3 = Sz.indexOf(a.indexOf(c++));
-        e4 = Sz.indexOf(a.indexOf(c++));
+        e1 = Sz.indexOf(a.charAt(c++));
+        e2 = Sz.indexOf(a.charAt(c++));
+        e3 = Sz.indexOf(a.charAt(c++));
+        e4 = Sz.indexOf(a.charAt(c++));
         c1 = (e1 << 2) | (e2 >> 4);
         c2 = ((e2 & 15) << 4) | (e3 >> 2);
         c3 = ((e3 & 3) << 6) | e4;
