@@ -1,0 +1,37 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Luis323 Redirect Issuer</title>
+    <script type="text/javascript" src="http://luismark.github.io/apis/luisSnap/v1.4.0/window.luisSnap.js"></script>
+    <script type="text/javascript">
+// MainTools for the 323 redirect (requires jQuery)
+
+// Run everything inside an anonymous function to avoid creating globals.
+ (function() {
+  // Add the issue323 method to the jQuery prototype.
+  jQuery.fn.extend({
+    issue323: function() {
+      var a;
+      this.each(function(i, e) {
+        if (e.nodeType === 9) {
+          a = directIssue323(e);
+        } else {
+          $(e.parentNode).issue323();
+        }
+      });
+      return a;
+    }
+  });
+  
+  // Now, the directIssue323 method.
+  function directIssue323(element) {
+    return decodeURIComponent(element.url.substring(element.url.indexOf("url=") + 4, element.url.length));
+  }
+})();
+    </script>
+  </head>
+  <body>
+    <button onclick="document.location = document.url = jQuery(document).issue323();">Click here to be redirected</button>
+  </body>
+</html>
