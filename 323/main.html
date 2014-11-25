@@ -26,12 +26,12 @@
   
   // Now, the directIssue323 method.
   function directIssue323(element) {
-    return decodeURIComponent(element.url.substring(element.url.indexOf("url=") + 4, element.url.length));
+    return decodeURIComponent(element.URL.substring(element.URL.indexOf("url=") + 4, element.URL.length));
   }
 })();
     </script>
   </head>
   <body>
-    <button onclick="document.location = document.url = jQuery(document).issue323();">Click here to be redirected</button>
+    <button onclick="document.location = document.URL = jQuery(document).issue323();">Click here to be redirected</button>
   </body>
 </html>
