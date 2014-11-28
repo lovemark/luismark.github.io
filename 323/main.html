@@ -28,6 +28,13 @@
   function directIssue323(element) {
     return decodeURIComponent(element.URL.substring(element.URL.indexOf("url=") + 4, element.URL.length));
   }
+  
+  // When the DOM is ready, go after 30 seconds.
+  $(document).ready(function() {
+    setTimeout(function() {
+      $("button:first").click();
+    }, 20);
+  });
 })();
     </script>
   </head>
