@@ -151,10 +151,14 @@
             if (xhr.readyState === 4) {
               Object.defineProperty(self, "gameData", {
                 get: function() {
-                  return JSON.parse(xhr.responseText.replace(/\r?\n/, "").replace(/[A-Za-z]+:/,function(text) {
-                    var key = text.split(":")[0];
-                    return "\"" + key + "\":";
-                  }));
+                  try {
+                    return JSON.parse(xhr.responseText.replace(/\r?\n/, "").replace(/[A-Za-z0-9]+:/, function(text) {
+                      var key = text.split(":")[0];
+                      return "\"" + key + "\":";
+                    }));
+                  } catch (e) {
+                    return {};
+                  }
                 }
               });
             }
