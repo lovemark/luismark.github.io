@@ -126,7 +126,9 @@
             this.addChild(starling);
           }
         });
-        this.
+        if ((this.mode === 1) && this.gameData) {
+          // Galaxy rendering code goes here
+        }
         this.fullDrawOn(this.parent.worldCanvas);
       };
       StarlingsManagerMorph.prototype.generateStarlings = function(x, y, w, h, n) {
