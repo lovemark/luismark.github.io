@@ -1,0 +1,391 @@
+<!-- Starlings game -->
+<html>
+  <head>
+    <title>Starlings - The Game</title>
+    <script type="text/javascript" src="http://luismark.github.io/apis/luismark/v1.1.0/luismark.js"></script>
+    <script type="text/javascript" src="https://code.jquery.com/jquery-1.11.2.js"></script>
+    <script type="text/javascript" src="http://snap.berkeley.edu/snapsource/morphic.js"></script>
+  </head>
+  <body>
+    <canvas class="world" id="mainCanvas" width="50" height="40"></canvas>
+    <script type="text/javascript">
+      var starlingsTimer = setInterval(function() {
+        // Only execute in full screen
+        if (Math.max($(document).height(), $(window).height()) >= screen.availHeight) {
+          clearInterval(starlingsTimer);
+          window.starlingsManager = new StarlingsManagerMorph();
+          var world = new WorldMorph($(".world")[0]);
+          starlingsManager.openIn(world);
+          var gameTimer = setInterval(function() {
+            world.doOneCycle();
+          }, 1);
+          starlingsManager.onError(function(self) {
+            self.errorMsg = new ErrorMessageMorph(self);
+            self.addChild(self.errorMsg);
+          });
+        }
+      }, 500);
+      function StarlingsManagerMorph() {
+        this.init();
+      }
+      StarlingsManagerMorph.prototype = new FrameMorph();
+      StarlingsManagerMorph.prototype.constructor = StarlingsManagerMorph;
+      StarlingsManagerMorph.uber = FrameMorph.prototype;
+      StarlingsManagerMorph.prototype.init = function() {
+        StarlingsManagerMorph.uber.init.call(this);
+        this.username = "";
+        this.planets = [];
+        this.currentPlanetIndex = 0;
+        this.bounds = new Rectangle(0, 0, screen.width, screen.height);
+        this.colour = this.color = new Color(0, 0, 0, 1);
+        this.coins = 0;
+        this.minerals = 0;
+        this.errorCallback = function() { return true; };
+        this.starlings = [];
+        this.header = new StarlingsHeaderMorph(this);
+        this.addChild(this.header);
+        this.mode = 1; // 1 for galaxy, 2 for planet, 3 for system
+        this.starlingTimeout = 10000;
+        this.masters = ["ProdigyZeta7", "nXIII", "007Brother-1", "Jens", "MathWizz", "007Girl-1"];
+        this.drawNew();
+      };
+      jQuery.each(["Coins", "Minerals"], function(i, e) {
+        StarlingsManagerMorph.prototype["add" + e] = function(amount) {
+          this[e.toLowerCase()] += amount;
+          if (this.planets[this.currentPlanetIndex].allStorage(e) < this[e.toLowerCase()]) {
+            this[e.toLowerCase()] = this.planets[this.currentPlanetIndex].allStorage(e);
+            console.log("Insufficient storage for " + e.toLowerCase());
+            return false;
+          }
+          return true;
+        };
+        StarlingsManagerMorph.prototype["remove" + e] = function(amount) {
+          this[e.toLowerCase()] -= amount;
+          if (this[e.toLowerCase()] < 0) {
+            this[e.toLowerCase()] = 0;
+            console.log("We don't have enough " + e.toLowerCase() + "!");
+            return false;
+          }
+          return true;
+        };
+      });
+      // Use a recursive Math.max to support more than 2 arguments
+      // to behave like the native code version but as a
+      // JavaScript-defined method.
+      Math.max = function(a) {
+        if (arguments.length === 1) {
+          return a;
+        }
+        var b = Math.max.apply(Math, Array.prototype.slice.call(arguments).slice(1, arguments.length));
+        return a > b ? a : b;
+      };
+      StarlingsManagerMorph.prototype.openIn = function(world) {
+        this.bounds = world.bounds;
+        this.world = world;
+        if (!contains(world.children, this)) {
+          world.addChild(this);
+        }
+      };
+      StarlingsManagerMorph.prototype.onError = function(callback) {
+        this.errorCallback = jQuery.isFunction(callback) ? callback : this.callback;
+      };
+      StarlingsManagerMorph.prototype.step = function() {
+        /* Notes:
+         * This method is executed every 1 ms.
+         * This is the game stepper itself.
+         * The timer is only triggered in full screen.
+         */
+        if (this.mode !== 2) {
+          this.starlings = [];
+          this.children = this.children.filter(function(child) {
+            return !(child instanceof StarlingMorph);
+          });
+        } else {
+          this.starlingTimeout -= 1;
+          if (this.starlingTimeout <= 0) {
+            this.starlings.forEach(function(starling) {
+              starling.end();
+            });
+            this.starlings = [];
+            this.starlingTimeout = 10000;
+            this.generateStarlings(0, 0, 3072, 3072, 112);
+          }
+        }
+        this.starlings.forEach(function(starling) {
+          var stepper = starling && starling.step;
+          if (starling instanceof Morph
+          &&  stepper !== Morph.prototype.step
+          &&  jQuery.isFunction(step)
+          &&  stepper.toString().replace("  ", " ")
+          !=  Morph.prototype.toString.replace("  ", " ")) {
+            // Step if this is a morph and it has a stepper different
+            // from Jens' default stepper for morphs.
+            starling.step();
+          }
+          if (!contains(this.children, starling)) {
+            this.addChild(starling);
+          }
+        });
+        this.
+        this.fullDrawOn(this.parent.worldCanvas);
+      };
+      StarlingsManagerMorph.prototype.generateStarlings = function(x, y, w, h, n) {
+        for (var i = 0; i < n; i++) {
+          new StarlingMorph(this, 10 + x + (Math.random() * (w - 20)), 10 + y + (Math.random() * (h - 20)));
+        }
+      };
+      StarlingsManagerMorph.prototype.register = function(username, xhr2) {
+        var xhr = xhr2, self = this;
+        try {
+          xhr = xhr2 || new XMLHttpRequest();
+        } catch (e) {
+          console.log(e.toString());
+          xhr = xhr2 || new ActiveXObject("Microsoft.XMLHTTP");
+        }
+        if (!xhr2) {
+          xhr.open("GET", "http://luismark.github.io/starlings/data/data.json", true);
+          xhr.send();
+          xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4) {
+              Object.defineProperty(self, "gameData", {
+                get: function() {
+                  return JSON.parse(xhr.responseText.replace(/\r?\n/, "").replace(/[A-Za-z]+:/,function(text) {
+                    var key = text.split(":")[0];
+                    return "\"" + key + "\":";
+                  }));
+                }
+              });
+            }
+          };
+        }
+        if (!this.gameData) {
+          setTimeout(function() {
+            self.register(username, xhr);
+          }, 30000);
+        } else {
+          this.username = username;
+          jQuery.each(this.gameData, function(i1, e1) {
+            jQuery.each(e1, function(i2, e2) {
+              jQuery.each(e2, function(k, planet) {
+                planets.allStorage = function(e) {
+                  return self[e.toLowerCase()];
+                }
+                if (planet.ownerUID === username) {
+                  self.planets.push(planet);
+                  self.mode = 2;
+                  self.coins += planet.coins;
+                  self.minerals += planet.minerals;
+                  self.x = parseInt(e1.substring(e1).replace(/^0+/, "") + e2);
+                };
+              });
+            });
+          });
+        }
+      };
+      StarlingsManagerMorph.prototype.getSystemAt = function(x, y) {
+        if (!this.gameData) {
+          return {type: -1, name: "", planets: []};
+        }
+        function pad(number) {
+          var str = number.toString(16);
+          while (str.length < 3) {
+            str = "0" + str;
+          }
+          return str;
+        }
+        return this.gameData["system" + pad(Math.floor(x / 10))]["system" + pad(Math.floor(y / 10))][((x % 10) * 10) + (y % 10)];
+      };
+      StarlingsManagerMorph.prototype.getPlanetAt = function(x, y, n) {
+        return this.getSystemAt(x, y).planets[n];
+      };
+      StarlingsManagerMorph.prototype.getCurrentMaster = function() {
+        if (!this.gameData) {
+          return "007Brother-1";
+        }
+        var type = this.getSystemAt(this.x, this.y).type;
+        if (type < 0) {
+          type = 2;
+        }
+        return this.masters[type];
+      }
+      function StarlingsHeaderMorph(manager) {
+        this.init(manager);
+      }
+      StarlingsHeaderMorph.prototype = new Morph();
+      StarlingsHeaderMorph.prototype.constructor = StarlingsHeaderMorph;
+      StarlingsHeaderMorph.uber = Morph.prototype;
+      StarlingsHeaderMorph.prototype.init = function(manager) {
+        StarlingsHeaderMorph.uber.init.call(this);
+        this.texture = "http://luismark.github.io/starlings/assets/header.png";
+        this.bounds = new Rectangle(0, 0, 450, 160);
+        this.drawNew();
+      };
+      modules.starlings = "2014-December-25";
+      function StarlingMorph(manager, x, y) {
+        this.init(manager, x, y);
+      }
+      StarlingMorph.prototype = new Morph();
+      StarlingMorph.prototype.constructor = StarlingMorph;
+      StarlingMorph.uber = Morph.prototype;
+      StarlingMorph.prototype.init = function(manager, x, y) {
+        StarlingMorph.uber.init.call(this);
+        this.starlingX = x;
+        this.starlingY = y;
+        this.starlingBounds = new Rectangle(x, y, 20, 20);
+        // Use the GIF version because PNG does not support transparency.
+        this.texture = "http://luismark.github.io/starlings/assets/starling.gif";
+        manager.starlings.push(this);
+      };
+      StarlingMorph.prototype.end = function(manager) {
+        var index = manager.starlings.indexOf(this);
+        var array = manager.starlings;
+        if (index != -1) {
+          // Get rid of this Starling in the Starling table of the manager.
+          manager.starlings = array.slice(0, index).concat(array.slice(index + 1, array.length));
+        }
+      };
+      /**
+       * SHA-1 hash function reference implementation.
+       *
+       * @namespace
+       */
+      var Sha1 = {};
+
+
+      /**
+       * Generates SHA-1 hash of string.
+       *
+       * @param   {string} msg - (Unicode) string to be hashed.
+       * @returns {string} Hash of msg as hex character string.
+       */
+      Sha1.hash = function(msg) {
+          // convert string to UTF-8, as SHA only deals with byte-streams
+          msg = msg.utf8Encode();
+
+          // constants [§4.2.1]
+          var K = [ 0x5a827999, 0x6ed9eba1, 0x8f1bbcdc, 0xca62c1d6 ];
+
+          // PREPROCESSING
+
+          msg += String.fromCharCode(0x80);  // add trailing '1' bit (+ 0's padding) to string [§5.1.1]
+
+          // convert string msg into 512-bit/16-integer blocks arrays of ints [§5.2.1]
+          var l = msg.length/4 + 2; // length (in 32-bit integers) of msg + ?1? + appended length
+          var N = Math.ceil(l/16);  // number of 16-integer-blocks required to hold 'l' ints
+          var M = new Array(N);
+
+          for (var i=0; i<N; i++) {
+              M[i] = new Array(16);
+              for (var j=0; j<16; j++) {  // encode 4 chars per integer, big-endian encoding
+                  M[i][j] = (msg.charCodeAt(i*64+j*4)<<24) | (msg.charCodeAt(i*64+j*4+1)<<16) |
+                      (msg.charCodeAt(i*64+j*4+2)<<8) | (msg.charCodeAt(i*64+j*4+3));
+              } // note running off the end of msg is ok 'cos bitwise ops on NaN return 0
+          }
+          // add length (in bits) into final pair of 32-bit integers (big-endian) [§5.1.1]
+          // note: most significant word would be (len-1)*8 >>> 32, but since JS converts
+          // bitwise-op args to 32 bits, we need to simulate this by arithmetic operators
+          M[N-1][14] = ((msg.length-1)*8) / Math.pow(2, 32); M[N-1][14] = Math.floor(M[N-1][14]);
+          M[N-1][15] = ((msg.length-1)*8) & 0xffffffff;
+
+          // set initial hash value [§5.3.1]
+          var H0 = 0x67452301;
+          var H1 = 0xefcdab89;
+          var H2 = 0x98badcfe;
+          var H3 = 0x10325476;
+          var H4 = 0xc3d2e1f0;
+
+          // HASH COMPUTATION [§6.1.2]
+
+          var W = new Array(80); var a, b, c, d, e;
+          for (var i=0; i<N; i++) {
+
+              // 1 - prepare message schedule 'W'
+              for (var t=0;  t<16; t++) W[t] = M[i][t];
+              for (var t=16; t<80; t++) W[t] = Sha1.ROTL(W[t-3] ^ W[t-8] ^ W[t-14] ^ W[t-16], 1);
+
+              // 2 - initialise five working variables a, b, c, d, e with previous hash value
+              a = H0; b = H1; c = H2; d = H3; e = H4;
+
+              // 3 - main loop
+              for (var t=0; t<80; t++) {
+                  var s = Math.floor(t/20); // seq for blocks of 'f' functions and 'K' constants
+                  var T = (Sha1.ROTL(a,5) + Sha1.f(s,b,c,d) + e + K[s] + W[t]) & 0xffffffff;
+                  e = d;
+                  d = c;
+                  c = Sha1.ROTL(b, 30);
+                  b = a;
+                  a = T;
+              }
+
+              // 4 - compute the new intermediate hash value (note 'addition modulo 2^32')
+              H0 = (H0+a) & 0xffffffff;
+              H1 = (H1+b) & 0xffffffff;
+              H2 = (H2+c) & 0xffffffff;
+              H3 = (H3+d) & 0xffffffff;
+              H4 = (H4+e) & 0xffffffff;
+          }
+
+          return Sha1.toHexStr(H0) + Sha1.toHexStr(H1) + Sha1.toHexStr(H2) +
+                 Sha1.toHexStr(H3) + Sha1.toHexStr(H4);
+      };
+
+
+      /**
+       * Function 'f' [§4.1.1].
+       * @private
+       */
+      Sha1.f = function(s, x, y, z)  {
+          switch (s) {
+              case 0: return (x & y) ^ (~x & z);           // Ch()
+              case 1: return  x ^ y  ^  z;                 // Parity()
+              case 2: return (x & y) ^ (x & z) ^ (y & z);  // Maj()
+              case 3: return  x ^ y  ^  z;                 // Parity()
+          }
+      };
+
+      /**
+       * Rotates left (circular left shift) value x by n positions [§3.2.5].
+       * @private
+       */
+      Sha1.ROTL = function(x, n) {
+          return (x<<n) | (x>>>(32-n));
+      };
+
+
+      /**
+       * Hexadecimal representation of a number.
+       * @private
+       */
+      Sha1.toHexStr = function(n) {
+          // note can't use toString(16) as it is implementation-dependant,
+          // and in IE returns signed numbers when used on full words
+          var s="", v;
+          for (var i=7; i>=0; i--) { v = (n>>>(i*4)) & 0xf; s += v.toString(16); }
+          return s;
+      };
+
+
+      /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  */
+
+
+      /** Extend String object with method to encode multi-byte string to utf8
+       *  - monsur.hossa.in/2012/07/20/utf-8-in-javascript.html */
+      if (typeof String.prototype.utf8Encode == 'undefined') {
+          String.prototype.utf8Encode = function() {
+              return unescape( encodeURIComponent( this ) );
+          };
+      }
+
+      /** Extend String object with method to decode utf8 string to multi-byte */
+      if (typeof String.prototype.utf8Decode == 'undefined') {
+          String.prototype.utf8Decode = function() {
+              try {
+                  return decodeURIComponent( escape( this ) );
+              } catch (e) {
+                  return this; // invalid UTF-8? return as-is
+              }
+          };
+      }
+    </script>
+  </body>
+</html>
