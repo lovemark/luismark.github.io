@@ -1,31 +1,31 @@
 {
-  system114: {
-    system006: [
+  "system114": {
+    "system006": [
       {
-        type: 3,
-        name: "Ss Laos`s",
-        planets: []
+        "type": 3,
+        "name": "Ss Laos`s",
+        "planets": []
       },
       {
-        type: 0,
-        name: "Chemal Nu",
-        planets: []
+        "type": 0,
+        "name": "Chemal Nu",
+        "planets": []
       },
       {
-        type: -1
+        "type": -1
       },
       {
-        type: 2,
-        name: "Sakah`a",
-        planets: [{
-          ownerID: "58987689",
-          owner: "spilgames-87:boy7553",
-          ownerUID: "70451ca8f8008cc7677b92a2b0d6c2c0509e698ce92ab",
-          isColony: false,
-          squareSize: 25,
-          coins: 55015,
-          minerals: 83694,
-          data: [
+        "type": 2,
+        "name": "Sakah`a",
+        "planets": [{
+          "ownerID": "58987689",
+          "owner": "spilgames-87:boy7553",
+          "ownerUID": "70451ca8f8008cc7677b92a2b0d6c2c0509e698ce92ab",
+          "isColony": false,
+          "squareSize": 25,
+          "coins": 55015,
+          "minerals": 83694,
+          "data": [
             "coinReceiver,0,0,3,2700,mineralReceiver,150,0,3,2700",
             "coinStorer,0,150,6,0,mineralStorer,150,150,4,0",
             "weapon02,300,50,1,6000,weapon01,60,300,1,6000"
@@ -34,29 +34,21 @@
       }
     ]
   },
-  system118: {
-    system028: [
+  "system118": {
+    "system028": [
       {},{},{},{},{},{},{},{},{},{},
       {},{},{},{},{},{},{},{},{},{},
-      {},{},{},{},{},{},{},{},{},{},
-      {},{},{},{},{},{},{},{},{},{},
-      {},{},{},{},{},{},{},{},{},{},
-      {},{},{},{},{},{},{},{},{},{},
-      {},{},{},{},{},{},{},{},{},{},
-      {},{},{},{},{},{},{},{},{},{},
-      {},{},{},{},{},{},{},{},{},{},
-      {},{},{},{},{},{},{},{},{},{},
-      {},{},{
-        type: 5,
-        name: "Ray Oman",
-        planets: [{
-          owner: "spilgames-87:luisa625629777",
-          ownerUID: "spielen.com:luisa625629777",
-          isColony: false,
-          squareSize: 25,
-          minerals: 0,
-          coins: 0,
-          data: []
+      {},{},{},{},{},{},{},{},{},{
+        "type": 5,
+        "name": "Ray Oman",
+        "planets": [{
+          "owner": "spilgames-87:luisa625629777",
+          "ownerUID": "spielen.com:luisa625629777",
+          "isColony": false,
+          "squareSize": 25,
+          "minerals": 0,
+          "coins": 0,
+          "data": []
         }]
       }
     ]
