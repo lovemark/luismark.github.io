@@ -134,7 +134,7 @@
             for (var j = this.nY - 1; j < this.nY + 19; j++) {
               var currentSystem;
               try {
-                currentSystem = this.getSystemAt(x, y);
+                currentSystem = this.getSystemAt(i, j);
               } catch (e) {}
               if (currentSystem && (currentSystem.type >= 0)) {
                 var img = document.createElement("img");
@@ -167,10 +167,7 @@
               Object.defineProperty(self, "gameData", {
                 get: function() {
                   try {
-                    return JSON.parse(xhr.responseText.replace(/\r?\n/, "").replace(/[A-Za-z0-9]+:/, function(text) {
-                      var key = text.split(":")[0];
-                      return "\"" + key + "\":";
-                    }));
+                    return JSON.parse(xhr.responseText);
                   } catch (e) {
                     return {};
                   }
@@ -187,17 +184,20 @@
           this.username = username;
           jQuery.each(this.gameData, function(i1, e1) {
             jQuery.each(e1, function(i2, e2) {
-              jQuery.each(e2, function(k, planet) {
-                planets.allStorage = function(e) {
-                  return self[e.toLowerCase()];
-                }
-                if (planet.ownerUID === username) {
-                  self.planets.push(planet);
-                  self.mode = 2;
-                  self.coins += planet.coins;
-                  self.minerals += planet.minerals;
-                  self.x = parseInt(e1.substring(e1).replace(/^0+/, "") + e2);
-                };
+              jQuery.each(e2, function(k, system) {
+                jQuery.each(system.planets, function(l, planet) {
+                  planet.allStorage = function(e) {
+                    return self[e.toLowerCase()];
+                  }
+                  if (planet.ownerUID === username) {
+                    self.planets.push(planet);
+                    self.mode = 2;
+                    self.coins += planet.coins;
+                    self.minerals += planet.minerals;
+                    planet.x = parseInt(i1.replace(/^0+/, "") * 10 + (k % 10));
+                    planet.y = parseInt(i2.replace(/^0+/, "") * 10 + Math.floor(k / 10));
+                  };
+                });
               });
             });
           });
@@ -208,7 +208,7 @@
           return {type: -1, name: "", planets: []};
         }
         function pad(number) {
-          var str = number.toString(16);
+          var str = number.toString(10);
           while (str.length < 3) {
             str = "0" + str;
           }
@@ -241,7 +241,7 @@
         this.bounds = new Rectangle(0, 0, 450, 160);
         this.drawNew();
       };
-      modules.starlings = "2014-December-25";
+      modules.starlings = "2014-December-27";
       function StarlingMorph(manager, x, y) {
         this.init(manager, x, y);
       }
