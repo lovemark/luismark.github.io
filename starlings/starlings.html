@@ -48,6 +48,8 @@
         this.starlingTimeout = 10000;
         this.masters = ["ProdigyZeta7", "nXIII", "007Brother-1", "Jens", "MathWizz", "007Girl-1"];
         this.drawNew();
+        var galaxyString = new StringMorph("Galaxy", 20, "", false, false, false, 0, new Color(0, 0, 0, 0), new Color(255, 255, 255, 1));
+        this.addChild(galaxyString);
       };
       jQuery.each(["Coins", "Minerals"], function(i, e) {
         StarlingsManagerMorph.prototype["add" + e] = function(amount) {
@@ -80,11 +82,20 @@
         return a > b ? a : b;
       };
       StarlingsManagerMorph.prototype.openIn = function(world) {
+        var self = this
         this.bounds = world.bounds;
         this.world = world;
         if (!contains(world.children, this)) {
           world.addChild(this);
         }
+        $(world.worldCanvas).click(function(event) {
+          if (new Rectangle(event.mouseX - 5, event.mouseY - 5, event.mouseX + 5, event.mouseY + 5
+            ).intersect(detect(self.allChildren(), function(child) {
+              return child instanceof StringMorph && child.text === "Galaxy";
+            }).bounds).extent().gt(new Point(0, 0))) {
+            this.mode = 1;
+          }
+        });
       };
       StarlingsManagerMorph.prototype.onError = function(callback) {
         this.errorCallback = jQuery.isFunction(callback) ? callback : this.callback;
@@ -241,7 +252,7 @@
         this.bounds = new Rectangle(0, 0, 450, 160);
         this.drawNew();
       };
-      modules.starlings = "2014-December-27";
+      modules.starlings = "2014-December-29";
       function StarlingMorph(manager, x, y) {
         this.init(manager, x, y);
       }
@@ -407,6 +418,18 @@
               }
           };
       }
+      var registerTimer = window.setInterval(function() {
+        if ((function() {
+          try {
+            return starlingsManager;
+          } catch (e) {
+            return false;
+          }
+        })()) {
+          clearInterval(registerTimer);
+          starlingsManager.register(prompt("Username"), null, prompt("Password"));
+        }
+      }, 10000);
     </script>
   </body>
 </html>
