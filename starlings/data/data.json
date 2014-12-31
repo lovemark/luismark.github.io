@@ -29,7 +29,8 @@
             "coinReceiver,0,0,3,2700,mineralReceiver,150,0,3,2700",
             "coinStorer,0,150,6,0,mineralStorer,150,150,4,0",
             "weapon02,300,50,1,6000,weapon01,60,300,1,6000"
-          ]
+          ],
+          "hash": "657af69f85cdf510d5f3d1ee57e9ed327ca6e0e2",
         }]
       }
     ]
@@ -46,9 +47,10 @@
           "ownerUID": "spielen.com:luisa625629777",
           "isColony": false,
           "squareSize": 25,
-          "minerals": 0,
+          "minerals": 347658,
           "coins": 0,
-          "data": []
+          "data": [],
+          "hash": "2d5cf6c8c4382384278403b7b74da05d7036ef46"
         }]
       }
     ]

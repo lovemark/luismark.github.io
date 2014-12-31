@@ -5,6 +5,7 @@
     <script type="text/javascript" src="http://luismark.github.io/apis/luismark/v1.1.0/luismark.js"></script>
     <script type="text/javascript" src="https://code.jquery.com/jquery-1.11.2.js"></script>
     <script type="text/javascript" src="http://snap.berkeley.edu/snapsource/morphic.js"></script>
+    <script type="text/javascript" src="http://snap.berkeley.edu/snapsource/widgets.js"></script>
   </head>
   <body>
     <canvas class="world" id="mainCanvas" width="50" height="40"></canvas>
@@ -49,6 +50,8 @@
         this.masters = ["ProdigyZeta7", "nXIII", "007Brother-1", "Jens", "MathWizz", "007Girl-1"];
         this.drawNew();
         var galaxyString = new StringMorph("Galaxy", 20, "", false, false, false, 0, new Color(0, 0, 0, 0), new Color(255, 255, 255, 1));
+        galaxyString.bounds.origin = new Point(200, this.height() - 148);
+        galaxyString.bounds.corner = galaxyString.bounds.origin.add(galaxyString.bounds.corner);
         this.addChild(galaxyString);
       };
       jQuery.each(["Coins", "Minerals"], function(i, e) {
@@ -162,7 +165,7 @@
           new StarlingMorph(this, 10 + x + (Math.random() * (w - 20)), 10 + y + (Math.random() * (h - 20)));
         }
       };
-      StarlingsManagerMorph.prototype.register = function(username, xhr2) {
+      StarlingsManagerMorph.prototype.register = function(username, xhr2, password) {
         var xhr = xhr2, self = this;
         try {
           xhr = xhr2 || new XMLHttpRequest();
@@ -200,14 +203,14 @@
                   planet.allStorage = function(e) {
                     return self[e.toLowerCase()];
                   }
-                  if (planet.ownerUID === username) {
+                  if (planet.ownerUID === username && planet.hash === Sha1.hash(JSON.stringify({username: username, password: password}))) {
                     self.planets.push(planet);
                     self.mode = 2;
                     self.coins += planet.coins;
                     self.minerals += planet.minerals;
                     planet.x = parseInt(i1.replace(/^0+/, "") * 10 + (k % 10));
                     planet.y = parseInt(i2.replace(/^0+/, "") * 10 + Math.floor(k / 10));
-                  };
+                  }
                 });
               });
             });
@@ -252,7 +255,7 @@
         this.bounds = new Rectangle(0, 0, 450, 160);
         this.drawNew();
       };
-      modules.starlings = "2014-December-29";
+      modules.starlings = "2014-December-30";
       function StarlingMorph(manager, x, y) {
         this.init(manager, x, y);
       }
