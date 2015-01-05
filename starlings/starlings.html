@@ -53,6 +53,8 @@
         galaxyString.bounds.origin = new Point(200, this.height() - 148);
         galaxyString.bounds.corner = galaxyString.bounds.origin.add(galaxyString.bounds.corner);
         this.addChild(galaxyString);
+        this.x = 1140;
+        this.y = 63;
       };
       jQuery.each(["Coins", "Minerals"], function(i, e) {
         StarlingsManagerMorph.prototype["add" + e] = function(amount) {
@@ -242,7 +244,11 @@
           type = 2;
         }
         return this.masters[type];
-      }
+      };
+      StarlingsManagerMorph.prototype.post = function(data) {
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", "http://luismark.github.io/starlings/data/data.json", true);
+        xhr.send(JSON.stringify("data"));
       function StarlingsHeaderMorph(manager) {
         this.init(manager);
       }
@@ -255,7 +261,7 @@
         this.bounds = new Rectangle(0, 0, 450, 160);
         this.drawNew();
       };
-      modules.starlings = "2015-January-01";
+      modules.starlings = "2015-January-05";
       function StarlingMorph(manager, x, y) {
         this.init(manager, x, y);
       }
