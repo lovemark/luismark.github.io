@@ -26,6 +26,8 @@
           });
         }
       }, 500);
+      // StarlingsManagerMorph
+      // I represent the game UI.
       function StarlingsManagerMorph() {
         this.init();
       }
@@ -115,7 +117,7 @@
         if (this.mode !== 2) {
           this.starlings = [];
           this.children = this.children.filter(function(child) {
-            return !(child instanceof StarlingMorph);
+            return !(child instanceof StarlingMorph || child instanceof BuildingMorph);
           });
         } else {
           this.starlingTimeout -= 1;
@@ -157,6 +159,31 @@
                 img.src = "http://luismark.github.io/starlings/assets/" + currentSystem.type + ".png";
                 ctx.drawImage(img, 0, 0, img.width, img.height, (i - this.nX + 3) * 200, (j + 1 - this.nY) * 200 + 160, 200, 200);
               }
+            }
+          }
+        }
+        if (this.mode === 2) {
+          var currentPlanet = this.getPlanetAt(this.x, this.y),
+              data = currentPlanet && currentPlanet.data,
+              newData = [],
+              k = -1,
+              l = -1,
+              validInt = function(str) {
+                try {
+                  parseInt(str);
+                  return true;
+                } catch (e) {
+                  return false;
+                }
+              };
+          while (data && (++k < data.length)) {
+            if (!validInt(data[k])) {
+              newData.push([]);
+              l++;
+            } else if (l != -1) {
+              newData[l].push(parseInt(data[k]));
+            } else {
+              throw new Error("An hacker was detected causing problems to the current data.\nPlease go to GitHub and open a new issue.");
             }
           }
         }
@@ -249,6 +276,9 @@
         var xhr = new XMLHttpRequest();
         xhr.open("POST", "http://luismark.github.io/starlings/data/data.json", true);
         xhr.send(JSON.stringify("data"));
+      };
+      // StarlingsHeaderMorph
+      // I am at the top-left corner of my manager.
       function StarlingsHeaderMorph(manager) {
         this.init(manager);
       }
@@ -261,10 +291,12 @@
         this.bounds = new Rectangle(0, 0, 450, 160);
         this.drawNew();
       };
-      modules.starlings = "2015-January-05";
+      modules.starlings = "2015-January-06";
       function StarlingMorph(manager, x, y) {
         this.init(manager, x, y);
       }
+      // StarlingMorph
+      // I am a Starling.
       StarlingMorph.prototype = new Morph();
       StarlingMorph.prototype.constructor = StarlingMorph;
       StarlingMorph.uber = Morph.prototype;
@@ -283,6 +315,31 @@
         if (index != -1) {
           // Get rid of this Starling in the Starling table of the manager.
           manager.starlings = array.slice(0, index).concat(array.slice(index + 1, array.length));
+        }
+      };
+      // BuildingMorph
+      // I represent a building in a planet.
+      function BuildingMorph(manager, data) {
+        this.init(manager, data);
+      }
+      BuildingMorph.prototype = new Morph();
+      BuildingMorph.prototype.constructor = BuildingMorph;
+      BuildingMorph.uber = Morph.prototype;
+      BuildingMorph.prototype.init = function(manager, data) {
+        BuildingMorph.uber.init.call(this);
+        var actualData = data.split(","),
+            img = document.createElement("img"),
+            self = this;
+        img.src = this.texture = "http://luismark.github.io/assets/" + actualData[0] + ".png";
+        img.onload = function() {
+          self.bounds = new Rectangle(160, 0, img.width + 160, img.height);
+        };
+        this.data = actualData.slice(1, actualData.length);
+        manager.addChild(this);
+      };
+      BuildingMorph.prototype.drawOn = function(canvas) {
+        if (this.parent.bounds.intersect(this.bounds).extent.gt(new Point(0, 0))) {
+          BuildingMorph.uber.drawOn.bind(this, canvas);
         }
       };
       /**
