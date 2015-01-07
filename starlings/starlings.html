@@ -113,7 +113,12 @@
          * This is the game stepper itself.
          * The timer is only triggered in full screen.
          */
-        var ctx = this.root().worldCanvas.getContext("2d");
+        this.drawOn = function(canvas) {
+          for (var i = 0; i < requests.length; i++) {
+            ctx.drawImage.apply(ctx, requests[i]);
+          }
+        };
+        var ctx = this.root().worldCanvas.getContext("2d"), requests = [];
         if (this.mode !== 2) {
           this.starlings = [];
           this.children = this.children.filter(function(child) {
@@ -157,7 +162,7 @@
               if (currentSystem && (currentSystem.type >= 0)) {
                 var img = document.createElement("img");
                 img.src = "http://luismark.github.io/starlings/assets/" + currentSystem.type + ".png";
-                ctx.drawImage(img, 0, 0, img.width, img.height, (i - this.nX + 3) * 200, (j + 1 - this.nY) * 200 + 160, 200, 200);
+                requests.push([img, 0, 0, img.width, img.height, (i - this.nX + 3) * 200, (j + 1 - this.nY) * 200 + 160, 200, 200]);
               }
             }
           }
@@ -228,7 +233,7 @@
           jQuery.each(this.gameData, function(i1, e1) {
             jQuery.each(e1, function(i2, e2) {
               jQuery.each(e2, function(k, system) {
-                jQuery.each(system.planets, function(l, planet) {
+                jQuery.each(system.planets || [], function(l, planet) {
                   planet.allStorage = function(e) {
                     return self[e.toLowerCase()];
                   }
