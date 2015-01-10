@@ -89,7 +89,7 @@
         return a > b ? a : b;
       };
       StarlingsManagerMorph.prototype.openIn = function(world) {
-        var self = this
+        var self = this;
         this.bounds = world.bounds;
         this.world = world;
         if (!contains(world.children, this)) {
@@ -100,8 +100,15 @@
             ).intersect(detect(self.allChildren(), function(child) {
               return child instanceof StringMorph && child.text === "Galaxy";
             }).bounds).extent().gt(new Point(0, 0))) {
-            this.mode = 1;
+            self.mode = 1;
           }
+          self.children.filter(function(child) {
+            return child instanceof BuildingMorph;
+          }).forEach(function(child) {
+            if (new Rectangle(event.clientX - 5, event.clientY - 5, event.clientX + 5, event.clientY + 5).intersect(child.bounds).extent().gt(new Point(0, 0))) {
+              child.callbacksOnClick[child.type](self, event);
+            }
+          });
         });
       };
       StarlingsManagerMorph.prototype.onError = function(callback) {
@@ -114,10 +121,18 @@
          * The timer is only triggered in full screen.
          */
         this.drawOn = function(canvas) {
+          var name;
           ctx.fillStyle = "black";
           ctx.fillRect(0, 0, this.width, this.height);
           for (var i = 0; i < requests.length; i++) {
-            ctx.drawImage.apply(ctx, requests[i]);
+            try {
+              ctx.drawImage.apply(ctx, requests[i]);
+            } catch (e) {
+              console.log("An exception occurred at StarlingsManagerMorph.prototype.drawOn.");
+              for (name in e) {
+                console.log("Exception's " + name + ": " + e[name]);
+              }
+            }
           }
         };
         var ctx = this.root().worldCanvas.getContext("2d"), requests = [];
@@ -298,7 +313,7 @@
         this.bounds = new Rectangle(0, 0, 450, 160);
         this.drawNew();
       };
-      modules.starlings = "2015-January-08";
+      modules.starlings = "2015-January-10";
       function StarlingMorph(manager, x, y) {
         this.init(manager, x, y);
       }
@@ -343,10 +358,29 @@
         };
         this.data = actualData.slice(1, actualData.length);
         manager.addChild(this);
+        this.type = actualData[0];
       };
       BuildingMorph.prototype.drawOn = function(canvas) {
         if (this.parent.bounds.intersect(this.bounds).extent.gt(new Point(0, 0))) {
           BuildingMorph.uber.drawOn.bind(this, canvas);
+        }
+      };
+      BuildingMorph.prototype.callbacksOnClick = {
+        coinReceiver: function(manager, event) {
+          manager.coins += this.coins;
+          this.actualData[4] = 0;
+          var clone = {}, x = manager.x, y = manager.y;
+          jQuery.extend(clone, manager.gameData);
+          function pad(number) {
+            var str = number.toString(10);
+            while (str.length < 3) {
+              str = "0" + str;
+            }
+            return str;
+          }
+          clone["system" + pad(Math.floor(x / 10))]["system" + pad(Math.floor(y / 10))][((x % 10) * 10) + (y % 10)].planets[this.currentPlanetIndex][];
+          // Write the new data to luismark.github.io
+          manager.post(clone);
         }
       };
       /**

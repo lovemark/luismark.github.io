@@ -23,8 +23,8 @@
           "ownerUID": "70451ca8f8008cc7677b92a2b0d6c2c0509e698ce92ab",
           "isColony": false,
           "squareSize": 25,
-          "coins": 55015,
-          "minerals": 83694,
+          "coins": 18285,
+          "minerals": 128987,
           "data": [
             "coinReceiver,0,0,3,2700,mineralReceiver,150,0,3,2700",
             "coinStorer,0,150,6,0,mineralStorer,150,150,4,0",
