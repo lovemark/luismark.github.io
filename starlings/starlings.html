@@ -313,7 +313,7 @@
         this.bounds = new Rectangle(0, 0, 450, 160);
         this.drawNew();
       };
-      modules.starlings = "2015-January-10";
+      modules.starlings = "2015-January-15";
       function StarlingMorph(manager, x, y) {
         this.init(manager, x, y);
       }
@@ -378,7 +378,7 @@
             }
             return str;
           }
-          clone["system" + pad(Math.floor(x / 10))]["system" + pad(Math.floor(y / 10))][((x % 10) * 10) + (y % 10)].planets[this.currentPlanetIndex][];
+          clone["system" + pad(Math.floor(x / 10))]["system" + pad(Math.floor(y / 10))][((x % 10) * 10) + (y % 10)].planets[this.currentPlanetIndex];
           // Write the new data to luismark.github.io
           manager.post(clone);
         }
@@ -537,6 +537,24 @@
           starlingsManager.register(prompt("Username"), null, prompt("Password"));
         }
       }, 10000);
+      /*
+        Novas ideias:
+          Apoio ao combate:
+            Seta do Sagitário:
+              Espalha setas pelo céu e destrói tudo!
+              (tudo à volta)
+              (podes selecionar onde queres destruir)
+          Mais cores para as bandeiras das alianças.
+          Unidades novas:
+            Sagitário:
+              Compra: 1000 moedas na Fábrica
+              Ativação: 12000 minerais
+              Nível necessário: Base Estelar nível 5
+            Cupido:
+              Compra: 1200 moedas
+              Ativação: 16000 minerais
+              Nível necessário: Base Estelar nível 6
+      */
     </script>
   </body>
 </html>
