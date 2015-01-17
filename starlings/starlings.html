@@ -57,6 +57,8 @@
         this.addChild(galaxyString);
         this.x = 1140;
         this.y = 63;
+        this.coinCapacity = 0;
+        this.mineralCapacity = 0;
       };
       jQuery.each(["Coins", "Minerals"], function(i, e) {
         StarlingsManagerMorph.prototype["add" + e] = function(amount) {
@@ -87,6 +89,16 @@
         }
         var b = Math.max.apply(Math, Array.prototype.slice.call(arguments).slice(1, arguments.length));
         return a > b ? a : b;
+      };
+      // Use a recursive Math.min to support more than 2 arguments
+      // to behave like the native code version but as a
+      // JavaScript-defined method.
+      Math.min = function(a) {
+        if (arguments.length === 1) {
+          return a;
+        }
+        var b = Math.min.apply(Math, Array.prototype.slice.call(arguments).slice(1, arguments.length));
+        return a < b ? a : b;
       };
       StarlingsManagerMorph.prototype.openIn = function(world) {
         var self = this;
@@ -254,13 +266,16 @@
                   planet.allStorage = function(e) {
                     return self[e.toLowerCase()];
                   }
-                  if (planet.ownerUID === username && planet.hash === Sha1.hash(JSON.stringify({username: username, password: password}))) {
+                  if (contains([planet.owner, planet.ownerUID], username) &&
+                    planet.hash === Sha1.hash(JSON.stringify({username: planet.ownerUID, password: password}))) {
                     self.planets.push(planet);
                     self.mode = 2;
                     self.coins += planet.coins;
                     self.minerals += planet.minerals;
                     planet.x = parseInt(i1.replace(/^0+/, "") * 10 + (k % 10));
                     planet.y = parseInt(i2.replace(/^0+/, "") * 10 + Math.floor(k / 10));
+                    self.coinStorage += 9000;
+                    self.mineralStorage += 9000;
                   }
                 });
               });
@@ -313,7 +328,7 @@
         this.bounds = new Rectangle(0, 0, 450, 160);
         this.drawNew();
       };
-      modules.starlings = "2015-January-15";
+      modules.starlings = "2015-January-17";
       function StarlingMorph(manager, x, y) {
         this.init(manager, x, y);
       }
@@ -359,6 +374,11 @@
         this.data = actualData.slice(1, actualData.length);
         manager.addChild(this);
         this.type = actualData[0];
+        switch (this.type) {
+          case "coinReceiver": setTimeout(function() {
+            this.data[5] += 1;
+          }, [1000, 1500, 2250][actualData[3]]);
+        }
       };
       BuildingMorph.prototype.drawOn = function(canvas) {
         if (this.parent.bounds.intersect(this.bounds).extent.gt(new Point(0, 0))) {
@@ -367,8 +387,6 @@
       };
       BuildingMorph.prototype.callbacksOnClick = {
         coinReceiver: function(manager, event) {
-          manager.coins += this.coins;
-          this.actualData[4] = 0;
           var clone = {}, x = manager.x, y = manager.y;
           jQuery.extend(clone, manager.gameData);
           function pad(number) {
@@ -378,9 +396,31 @@
             }
             return str;
           }
-          clone["system" + pad(Math.floor(x / 10))]["system" + pad(Math.floor(y / 10))][((x % 10) * 10) + (y % 10)].planets[this.currentPlanetIndex];
+          clone["system" + pad(Math.floor(x / 10))]["system" + pad(Math.floor(y / 10))][((x % 10) * 10) + (y % 10)].planets[this.currentPlanetIndex].coins += this.data[5];
+          this.data[5] = 0;
           // Write the new data to luismark.github.io
           manager.post(clone);
+          manager.onPostReady(function(manager) {
+            manager.coins = clone["system" + pad(Math.floor(x / 10))]["system" + pad(Math.floor(y / 10))][((x % 10) * 10) + (y % 10)].planets[this.currentPlanetIndex].coins;
+          });
+        },
+        mineralReceiver: function(manager, event) {
+          var clone = {}, x = manager.x, y = manager.y;
+          jQuery.extend(clone, manager.gameData);
+          function pad(number) {
+            var str = number.toString(10);
+            while (str.length < 3) {
+              str = "0" + str;
+            }
+            return str;
+          }
+          clone["system" + pad(Math.floor(x / 10))]["system" + pad(Math.floor(y / 10))][((x % 10) * 10) + (y % 10)].planets[this.currentPlanetIndex].minerals += this.data[5];
+          this.data[5] = 0;
+          // Write the new data to luismark.github.io
+          manager.post(clone);
+          manager.onPostReady(function(manager) {
+            manager.coins = clone["system" + pad(Math.floor(x / 10))]["system" + pad(Math.floor(y / 10))][((x % 10) * 10) + (y % 10)].planets[this.currentPlanetIndex].minerals;
+          });
         }
       };
       /**
