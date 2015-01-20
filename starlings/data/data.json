@@ -50,7 +50,8 @@
           "minerals": 347658,
           "coins": 0,
           "data": [],
-          "hash": "2d5cf6c8c4382384278403b7b74da05d7036ef46"
+          "hash": "2d5cf6c8c4382384278403b7b74da05d7036ef46",
+          "avatarPresent": true
         }]
       }
     ]
