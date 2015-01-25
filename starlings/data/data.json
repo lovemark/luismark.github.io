@@ -23,14 +23,15 @@
           "ownerUID": "70451ca8f8008cc7677b92a2b0d6c2c0509e698ce92ab",
           "isColony": false,
           "squareSize": 25,
-          "coins": 30585,
-          "minerals": 141072,
+          "coins": 401753,
+          "minerals": 15217,
           "data": [
-            "coinReceiver,0,0,3,2700,mineralReceiver,150,0,3,2700",
+            "coinReceiver,0,0,4,6510,mineralReceiver,150,0,4,6510",
             "coinStorer,0,150,6,0,mineralStorer,150,150,4,0",
             "weapon02,300,50,1,6000,weapon01,60,300,1,6000"
           ],
-          "hash": "657af69f85cdf510d5f3d1ee57e9ed327ca6e0e2"
+          "hash": "657af69f85cdf510d5f3d1ee57e9ed327ca6e0e2",
+          "index": 0
         }]
       }
     ]
@@ -47,10 +48,11 @@
           "ownerUID": "spielen.com:luisa625629777",
           "isColony": false,
           "squareSize": 25,
-          "minerals": 347658,
-          "coins": 0,
+          "minerals": 590000,
+          "coins": 931040,
           "data": [],
-          "hash": "2d5cf6c8c4382384278403b7b74da05d7036ef46"
+          "hash": "2d5cf6c8c4382384278403b7b74da05d7036ef46",
+          "avatarPresent": true
         }]
       }
     ]
