@@ -123,9 +123,9 @@
           });
           var xmin = 0, ymin = 160, xmax = self.width(), ymax = self.height() - 148;
           if (new Rectangle(xmin, ymin, xmax, ymax).intersect(eventArea).extent().gt(new Point(0, 0))) {
-            this.mode = 3;
-            this.x = this.nX - 3 + Math.floor((eventArea.left() + 5) / 200);
-            this.y = this.nY - 1 + Math.floor((eventArea.top() - 155) / 200);
+            self.mode = 3;
+            self.x = this.nX - 3 + Math.floor((eventArea.left() + 5) / 200);
+            self.y = this.nY - 1 + Math.floor((eventArea.top() - 155) / 200);
           }
         });
       };
@@ -237,7 +237,7 @@
             []
           ];
           if (this.getSystemAt(this.x, this.y).type != -1) {
-            jQuery.each(this.getSystemAt(this.x, this.y).planets[this.getSystemAt(this.x, this.y).type], function(i, e) {
+            jQuery.each(this.getSystemAt(this.x, this.y).planets, function(i, e) {
               /*img = document.createElement("img");
               img.src = "http://luismark.github.io/starlings/assets/planet" + self.getSystemAt(self.x, self.y).type + ".png";*/
             });
