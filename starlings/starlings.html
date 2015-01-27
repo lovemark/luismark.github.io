@@ -55,8 +55,8 @@
         galaxyString.bounds.origin = new Point(200, this.height() - 148);
         galaxyString.bounds.corner = galaxyString.bounds.origin.add(galaxyString.bounds.corner);
         this.addChild(galaxyString);
-        this.x = 1140;
-        this.y = 63;
+        this.nX = this.x = 1140;
+        this.nY = this.y = 63;
         this.coinCapacity = 0;
         this.mineralCapacity = 0;
       };
@@ -128,6 +128,7 @@
             self.y = this.nY - 1 + Math.floor((eventArea.top() - 155) / 200);
           }
         });
+        world.color = new Color(0, 0, 0, 1);
       };
       StarlingsManagerMorph.prototype.onError = function(callback) {
         this.errorCallback = jQuery.isFunction(callback) ? callback : this.callback;
@@ -138,10 +139,15 @@
          * This is the game stepper itself.
          * The timer is only triggered in full screen.
          */
+        // I hate NaNs in the coordinates, let's do it as a prologue.
+        this.x = !isNaN(this.x) ? this.x : 1140;
+        this.y = !isNaN(this.y) ? this.y : 63;
+        this.nX = !isNaN(this.nX) ? this.nX : 1140;
+        this.nY = !isNaN(this.nY) ? this.nY : 63;
         this.drawOn = function(canvas) {
-          var name;
-          ctx.fillStyle = "black";
-          ctx.fillRect(0, 0, this.width, this.height);
+          var name, context = this.image.getContext("2d");
+          context.fillStyle = "black";
+          context.fillRect(0, 0, this.width(), this.height());
           for (var i = 0; i < requests.length; i++) {
             try {
               ctx.drawImage.apply(ctx, requests[i]);
@@ -152,12 +158,13 @@
               }
             }
           }
+          // Jens, insert your code here.
         };
-        var ctx = this.root().worldCanvas.getContext("2d"), requests = [];
+        var ctx = this.root().worldCanvas.getContext("2d"), requests = [], systemExp = /[A-Za-z\x27\x20]+\x20\x28\d+;\x20\d+\x29/, planetExp = /([A-Za-z0-9\x2d_]{3-20}\x27s\x20Planet|Colony\x20[0-9]{1-2}[a-l]\x20of\x20[A-Za-z0-9\x2d])/;
         if (this.mode !== 2) {
           this.starlings = [];
           this.children = this.children.filter(function(child) {
-            return !(child instanceof StarlingMorph || child instanceof BuildingMorph);
+            return !(child instanceof StarlingMorph || child instanceof BuildingMorph || (child.text && (((this.mode == 1) && systemExp.test(child.text)) || planetExp.test(child.text))));
           });
         } else {
           this.starlingTimeout -= 1;
@@ -243,7 +250,33 @@
             });
           }
         }
+        var text = "", str1, str2;
+        if (this.mode > 1) {
+          this.addChild(str1 = new StringMorph(this.getSystemAt(this.x, this.y).name + " (" + this.x + "," + this.y + ")"), 20, "", false, false, false, 0, new Color(0, 0, 0, 0), new Color(255, 255, 255, 1));
+          if (this.mode == 2) {
+            if (this.planets[this.currentPlanetIndex].isColony) {
+              text = "Colony " + this.planets[this.currentPlanetIndex].colonyID + " of " + this.planets[this.currentPlanetIndex].split(":")[1];
+            } else {
+              text = this.planets[this.currentPlanetIndex].owner.split(":")[1] + "'s Planet";
+            }
+            this.addChild(str2 = new StringMorph(text, 20, "", false, false, false, 0, new Color(0, 0, 0, 0), new Color(255, 255, 255, 1)));
+            str2.bounds = str2.bounds.translateBy(new Point(580, this.height() - 148).subtract(str2.bounds.origin));
+          }
+          str1.bounds = str1.bounds.translateBy(new Point(350, this.height() - 148).subtract(str2.bounds.origin));
+        }
+        // And a epilogue.
+        this.x = !isNaN(this.x) ? this.x : 1140;
+        this.y = !isNaN(this.y) ? this.y : 63;
+        this.nX = !isNaN(this.nX) ? this.nX : 1140;
+        this.nY = !isNaN(this.nY) ? this.nY : 63;
+
         this.fullDrawOn(this.parent.worldCanvas);
+
+        // And after drawing.
+        this.x = !isNaN(this.x) ? this.x : 1140;
+        this.y = !isNaN(this.y) ? this.y : 63;
+        this.nX = !isNaN(this.nX) ? this.nX : 1140;
+        this.nY = !isNaN(this.nY) ? this.nY : 63;
       };
       StarlingsManagerMorph.prototype.generateStarlings = function(x, y, w, h, n) {
         for (var i = 0; i < n; i++) {
@@ -278,7 +311,7 @@
         if (!this.gameData) {
           setTimeout(function() {
             self.register(username, xhr);
-          }, 30000);
+          }, 2000);
         } else {
           this.username = username;
           jQuery.each(this.gameData, function(i1, e1) {
@@ -358,7 +391,7 @@
         this.bounds = new Rectangle(0, 0, 450, 160);
         this.drawNew();
       };
-      modules.starlings = "2015-January-25";
+      modules.starlings = "2015-January-27";
       function StarlingMorph(manager, x, y) {
         this.init(manager, x, y);
       }
