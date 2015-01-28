@@ -55,8 +55,8 @@
         galaxyString.bounds.origin = new Point(200, this.height() - 148);
         galaxyString.bounds.corner = galaxyString.bounds.origin.add(galaxyString.bounds.corner);
         this.addChild(galaxyString);
-        this.x = 1140;
-        this.y = 63;
+        this.nX = this.x = 1140;
+        this.nY = this.y = 63;
         this.coinCapacity = 0;
         this.mineralCapacity = 0;
       };
@@ -108,20 +108,27 @@
           world.addChild(this);
         }
         $(world.worldCanvas).click(function(event) {
-          if (new Rectangle(event.clientX - 5, event.clientY - 5, event.clientX + 5, event.clientY + 5
-            ).intersect(detect(self.allChildren(), function(child) {
-              return child instanceof StringMorph && child.text === "Galaxy";
-            }).bounds).extent().gt(new Point(0, 0))) {
+          var eventArea = new Rectangle(event.clientX - 5, event.clientY - 5, event.clientX + 5, event.clientY + 5);
+          if (eventArea.intersect(detect(self.allChildren(), function(child) {
+            return child instanceof StringMorph && child.text === "Galaxy";
+          }).bounds).extent().gt(new Point(0, 0))) {
             self.mode = 1;
           }
           self.children.filter(function(child) {
             return child instanceof BuildingMorph;
           }).forEach(function(child) {
-            if (new Rectangle(event.clientX - 5, event.clientY - 5, event.clientX + 5, event.clientY + 5).intersect(child.bounds).extent().gt(new Point(0, 0))) {
+            if (eventArea.intersect(child.bounds).extent().gt(new Point(0, 0))) {
               child.callbacksOnClick[child.type](self, event);
             }
           });
+          var xmin = 0, ymin = 160, xmax = self.width(), ymax = self.height() - 148;
+          if (new Rectangle(xmin, ymin, xmax, ymax).intersect(eventArea).extent().gt(new Point(0, 0))) {
+            self.mode = 3;
+            self.x = this.nX - 3 + Math.floor((eventArea.left() + 5) / 200);
+            self.y = this.nY - 1 + Math.floor((eventArea.top() - 155) / 200);
+          }
         });
+        world.color = new Color(0, 0, 0, 1);
       };
       StarlingsManagerMorph.prototype.onError = function(callback) {
         this.errorCallback = jQuery.isFunction(callback) ? callback : this.callback;
@@ -132,10 +139,15 @@
          * This is the game stepper itself.
          * The timer is only triggered in full screen.
          */
+        // I hate NaNs in the coordinates, let's do it as a prologue.
+        this.x = !isNaN(this.x) ? this.x : 1140;
+        this.y = !isNaN(this.y) ? this.y : 63;
+        this.nX = !isNaN(this.nX) ? this.nX : 1140;
+        this.nY = !isNaN(this.nY) ? this.nY : 63;
         this.drawOn = function(canvas) {
-          var name;
-          ctx.fillStyle = "black";
-          ctx.fillRect(0, 0, this.width, this.height);
+          var name, context = this.image.getContext("2d");
+          context.fillStyle = "black";
+          context.fillRect(0, 0, this.width(), this.height());
           for (var i = 0; i < requests.length; i++) {
             try {
               ctx.drawImage.apply(ctx, requests[i]);
@@ -146,12 +158,13 @@
               }
             }
           }
+          // Jens, insert your code here.
         };
-        var ctx = this.root().worldCanvas.getContext("2d"), requests = [];
+        var ctx = this.root().worldCanvas.getContext("2d"), requests = [], systemExp = /[A-Za-z\x27\x20]+\x20\x28\d+;\x20\d+\x29/, planetExp = /([A-Za-z0-9\x2d_]{3-20}\x27s\x20Planet|Colony\x20[0-9]{1-2}[a-l]\x20of\x20[A-Za-z0-9\x2d])/;
         if (this.mode !== 2) {
           this.starlings = [];
           this.children = this.children.filter(function(child) {
-            return !(child instanceof StarlingMorph || child instanceof BuildingMorph);
+            return !(child instanceof StarlingMorph || child instanceof BuildingMorph || (child.text && (((this.mode == 1) && systemExp.test(child.text)) || planetExp.test(child.text))));
           });
         } else {
           this.starlingTimeout -= 1;
@@ -204,8 +217,7 @@
               l = -1,
               validInt = function(str) {
                 try {
-                  parseInt(str);
-                  return true;
+                  return !isNaN(parseInt(str));
                 } catch (e) {
                   return false;
                 }
@@ -217,11 +229,54 @@
             } else if (l != -1) {
               newData[l].push(parseInt(data[k]));
             } else {
-              throw new Error("An hacker was detected causing problems to the current data.\nPlease go to GitHub and open a new issue.");
+              throw new Error("An hacker was detected causing problems to the current data.\nPlease go to GitHub and open a new issue on luismark/luismark.github.io.");
             }
           }
         }
+        if (this.mode === 3) {
+          // A list of lists of points containing information about the system displacements.
+          var table = [
+            [new Point(405 - 658, 302 - 355), new Point(488 - 658, 260 - 355), new Point(592 - 658, 238 - 355), new Point(718 - 658, 238 - 355), new Point(858 - 658, 267 - 355), new Point(927 - 658, 352 - 355), new Point(888 - 658, 433 - 355), new Point(789 - 658, 491 - 355), new Point(657 - 658, 485 - 355), new Point(527 - 658, 492 - 355), new Point(421 - 658, 468 - 355), new Point(379 - 658, 385 - 355)], // center: 658, 355
+            [new Point(359 - 667, 230 - 355), new Point(476 - 667, 304 - 355), new Point(762 - 667, 257 - 355), new Point(895 - 667, 183 - 355), new Point(955 - 667, 339 - 355), new Point(866 - 667, 343 - 355), new Point(790 - 667, 430 - 355), new Point(759 - 667, 348 - 355), new Point(525 - 667, 400 - 355), new Point(443 - 667, 439 - 355), new Point(340 - 667, 490 - 355), new Point(547 - 667, 490 - 355)], // center: 667, 355
+            [new Point(376 - 779, 236 - 348), new Point(391 - 779, 349 - 348), new Point(459 - 779, 432 - 348), new Point(568 - 779, 484 - 348), new Point(699 - 779, 480 - 348), new Point(818 - 779, 473 - 348), new Point(908 - 779, 426 - 348), new Point(933 - 779, 321 - 348), new Point(899 - 779, 224 - 348), new Point(799 - 779, 213 - 355), new Point(716 - 779, 241 - 348), new Point(641 - 779, 320 - 355)], // center: 779, 348
+            [],
+            [],
+            []
+          ];
+          if (this.getSystemAt(this.x, this.y).type != -1) {
+            jQuery.each(this.getSystemAt(this.x, this.y).planets, function(i, e) {
+              /*img = document.createElement("img");
+              img.src = "http://luismark.github.io/starlings/assets/planet" + self.getSystemAt(self.x, self.y).type + ".png";*/
+            });
+          }
+        }
+        var text = "", str1, str2;
+        if (this.mode > 1) {
+          this.addChild(str1 = new StringMorph(this.getSystemAt(this.x, this.y).name + " (" + this.x + "," + this.y + ")"), 20, "", false, false, false, 0, new Color(0, 0, 0, 0), new Color(255, 255, 255, 1));
+          if (this.mode == 2) {
+            if (this.planets[this.currentPlanetIndex].isColony) {
+              text = "Colony " + this.planets[this.currentPlanetIndex].colonyID + " of " + this.planets[this.currentPlanetIndex].split(":")[1];
+            } else {
+              text = this.planets[this.currentPlanetIndex].owner.split(":")[1] + "'s Planet";
+            }
+            this.addChild(str2 = new StringMorph(text, 20, "", false, false, false, 0, new Color(0, 0, 0, 0), new Color(255, 255, 255, 1)));
+            str2.bounds = str2.bounds.translateBy(new Point(580, this.height() - 148).subtract(str2.bounds.origin));
+          }
+          str1.bounds = str1.bounds.translateBy(new Point(350, this.height() - 148).subtract(str2.bounds.origin));
+        }
+        // And a epilogue.
+        this.x = !isNaN(this.x) ? this.x : 1140;
+        this.y = !isNaN(this.y) ? this.y : 63;
+        this.nX = !isNaN(this.nX) ? this.nX : 1140;
+        this.nY = !isNaN(this.nY) ? this.nY : 63;
+
         this.fullDrawOn(this.parent.worldCanvas);
+
+        // And after drawing.
+        this.x = !isNaN(this.x) ? this.x : 1140;
+        this.y = !isNaN(this.y) ? this.y : 63;
+        this.nX = !isNaN(this.nX) ? this.nX : 1140;
+        this.nY = !isNaN(this.nY) ? this.nY : 63;
       };
       StarlingsManagerMorph.prototype.generateStarlings = function(x, y, w, h, n) {
         for (var i = 0; i < n; i++) {
@@ -256,7 +311,7 @@
         if (!this.gameData) {
           setTimeout(function() {
             self.register(username, xhr);
-          }, 30000);
+          }, 2000);
         } else {
           this.username = username;
           jQuery.each(this.gameData, function(i1, e1) {
@@ -310,10 +365,18 @@
         return this.masters[type];
       };
       StarlingsManagerMorph.prototype.post = function(data) {
-        var xhr = new XMLHttpRequest();
+        var self = this, xhr = new XMLHttpRequest();
         xhr.open("POST", "http://luismark.github.io/starlings/data/data.json", true);
         xhr.send(JSON.stringify("data"));
+        xhr.onreadystatechange = function() {
+          if (xhr.readyState === 4) {
+            this.postReadyCallback();
+          }
+        }
       };
+      StarlingsManagerMorph.prototype.onPostReady = function(callback) {
+        this.postReadyCallback = callback;
+      }
       // StarlingsHeaderMorph
       // I am at the top-left corner of my manager.
       function StarlingsHeaderMorph(manager) {
@@ -328,7 +391,7 @@
         this.bounds = new Rectangle(0, 0, 450, 160);
         this.drawNew();
       };
-      modules.starlings = "2015-January-20";
+      modules.starlings = "2015-January-27";
       function StarlingMorph(manager, x, y) {
         this.init(manager, x, y);
       }
@@ -381,7 +444,7 @@
         }
       };
       BuildingMorph.prototype.drawOn = function(canvas) {
-        if (this.parent.bounds.intersect(this.bounds).extent.gt(new Point(0, 0))) {
+        if (this.parent.bounds.intersect(this.bounds).extent().gt(new Point(0, 0))) {
           BuildingMorph.uber.drawOn.bind(this, canvas);
         }
       };
@@ -396,12 +459,12 @@
             }
             return str;
           }
-          clone["system" + pad(Math.floor(x / 10))]["system" + pad(Math.floor(y / 10))][((x % 10) * 10) + (y % 10)].planets[this.currentPlanetIndex].coins += this.data[5];
+          clone["system" + pad(Math.floor(x / 10))]["system" + pad(Math.floor(y / 10))][((x % 10) * 10) + (y % 10)].planets[this.planets[this.currentPlanetIndex].index].coins += this.data[5];
           this.data[5] = 0;
           // Write the new data to luismark.github.io
           manager.post(clone);
           manager.onPostReady(function(manager) {
-            manager.coins = clone["system" + pad(Math.floor(x / 10))]["system" + pad(Math.floor(y / 10))][((x % 10) * 10) + (y % 10)].planets[this.currentPlanetIndex].coins;
+            manager.coins = clone["system" + pad(Math.floor(x / 10))]["system" + pad(Math.floor(y / 10))][((x % 10) * 10) + (y % 10)].planets[this.planets[this.currentPlanetIndex].index].coins;
           });
         },
         mineralReceiver: function(manager, event) {
