@@ -59,6 +59,9 @@
         this.nY = this.y = 63;
         this.coinCapacity = 0;
         this.mineralCapacity = 0;
+        this.nI = 0;
+        this.peaceContracts = [];
+        this.friends = [];
       };
       jQuery.each(["Coins", "Minerals"], function(i, e) {
         StarlingsManagerMorph.prototype["add" + e] = function(amount) {
@@ -377,6 +380,52 @@
       StarlingsManagerMorph.prototype.onPostReady = function(callback) {
         this.postReadyCallback = callback;
       }
+      StarlingsManagerMorph.prototype.attack = function() {
+        // ==============================NOTES=======================
+        // Never call this method if you don't have a specific catch block.
+        // Use StarlingsManager.prototype.safeAttack instead.
+        var targetSystem = this.getSystemAt(this.nX, this.nY),
+            targetPlanet = targetSystem.planets[this.nI],
+            targetUserID = targetPlanet.ownerID,
+            targetUsername = targetUserID.split(":")[1],
+            currentMaster = this.getCurrentMaster();
+        if (!this.username) {
+          // An anonymous user cannot attack other players.
+          this.error("You are not logged in, so you can't attack!");
+        }
+        if (!this.units.length) {
+          // We cannot attack an enemy without units.
+          this.error("We don't have units to attack our enemies! Let's build some!");
+        }
+        if (contains(this.peaceContracts, targetUsername) || (this.nI == 15)) {
+          // The user using this game is trying to attack a master or someone that did a peace contract with him.
+          if (this.nI == 15) {
+            // The 16th planet always belongs to the current master (not Elderby).
+            var table = {"007Brother-1": "Lu\xEDs C\xC2mara", "007Girl-1": "B\xC1rbara C\xC2mara", MathWizz: "Truman Kiley", ProdigyZeta7: "???", nXIII: "Nathan Dinsmore", Jens: "Jens M\xF6nig"};
+            this.error("We cannot attack our master: " + table[currentMaster] + " (" + currentMaster + ")"
+          } else {
+            // The user using this game is trying to attack someone that did a peace contract with him.
+            this.error("We've done a peace contract with this player: " + targetUsername + "!");
+          }
+        }
+        // Jens, replace this code with the correct attack code (see Issue #3 on luismark/luismark.github.io).
+        this.error("Jens is not ready!");
+      }
+      StarlingsManagerMorph.prototype.safeAttack = function() {
+        try {
+          this.attack();
+        } catch (e) {
+          if (!e.withPurpose) {
+            this.error("There occurred an unexpected error during the attack.");
+          }
+        }
+      }
+      StarlingsManagerMorph.prototype.error = function(msg) {
+        // Proper Morphic code must be inserted before this code.
+        var e = new Error(msg);
+        e.withPurpose = true;
+        throw e;
+      }
       // StarlingsHeaderMorph
       // I am at the top-left corner of my manager.
       function StarlingsHeaderMorph(manager) {
@@ -391,7 +440,7 @@
         this.bounds = new Rectangle(0, 0, 450, 160);
         this.drawNew();
       };
-      modules.starlings = "2015-January-27";
+      modules.starlings = "2015-January-28";
       function StarlingMorph(manager, x, y) {
         this.init(manager, x, y);
       }
