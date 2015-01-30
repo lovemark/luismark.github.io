@@ -165,12 +165,12 @@
         };
         var ctx = this.root().worldCanvas.getContext("2d"), requests = [], systemExp = /[A-Za-z\x27\x20]+\x20\x28\d+;\x20\d+\x29/, planetExp = /([A-Za-z0-9\x2d_]{3-20}\x27s\x20Planet|Colony\x20[0-9]{1-2}[a-l]\x20of\x20[A-Za-z0-9\x2d])/, systemOrPlanetExp = new RegExp("(" + systemExp.source + "|" + planetExp.source + ")");
         this.children = this.children.filter(function(child) {
-          return !(child instanceof BuildingMorph || (child.text && systemOrPlanetExp.test(child.text)));
+          return !(child instanceof BuildingMorph || (child.text && child.text !== "Galaxy"));
         });
         if (this.mode !== 2) {
           this.starlings = [];
           this.children = this.children.filter(function(child) {
-            return !(child instanceof StarlingMorph || child instanceof BuildingMorph || (child.text && systemOrPlanetExp.test(child.text)));
+            return !(child instanceof StarlingMorph || child instanceof BuildingMorph || (child.text && child.text !== "Galaxy"));
           });
         } else {
           this.starlingTimeout -= 1;
@@ -270,12 +270,23 @@
           }
           str1.bounds = str1.bounds.translateBy(new Point(350, this.height() - 148).subtract(str1.bounds.origin));
         }
+        var img2 = new Image();
+        img2.src = "http://luismark.github.io/starlings/assets/minerals.png";
+        requests.push([img2, 0, 0, 32, 32, 450, 0, 32, 32]);
+        var str3 = new StringMorph(this.minerals.toString(10), 20, "", false, false, false, 0, new Color(0, 0, 0, 0), new Color(106, 210, 56, 1)); // 106, 210, 56
+            str4 = new StringMorph(this.coins.toString(10), 20, "", false, false, false, 0, new Color(0, 0, 0, 0), new Color(251, 208, 1, 1)); // 251, 208, 1
+        str3.bounds = str3.bounds.translateBy(new Point(482, 0));
+        str4.bounds = str3.bounds.translateBy(new Point(614, 0));
+        this.addChild(str3);
+        // var img3 = new Image();
+        // img3.src = "http://luismark.github.io/starlings/assets/coins.png";
+        // requests.push([img3, 0, 0, 32, 32, 582, 0, 32, 32]);
+        this.addChild(str4);
         // And a epilogue.
         this.x = !isNaN(this.x) ? this.x : 1140;
         this.y = !isNaN(this.y) ? this.y : 63;
         this.nX = !isNaN(this.nX) ? this.nX : 1140;
         this.nY = !isNaN(this.nY) ? this.nY : 63;
-
         this.fullDrawOn(this.parent.worldCanvas);
 
         // And after drawing.
@@ -443,7 +454,7 @@
         this.bounds = new Rectangle(0, 0, 450, 160);
         this.drawNew();
       };
-      modules.starlings = "2015-January-29";
+      modules.starlings = "2015-January-30";
       function StarlingMorph(manager, x, y) {
         this.init(manager, x, y);
       }
