@@ -270,17 +270,17 @@
           }
           str1.bounds = str1.bounds.translateBy(new Point(350, this.height() - 148).subtract(str1.bounds.origin));
         }
-        var img2 = new Image();
-        img2.src = "http://luismark.github.io/starlings/assets/minerals.png";
-        requests.push([img2, 0, 0, 32, 32, 450, 0, 32, 32]);
+        // var img2 = new Image();
+        // img2.src = "http://luismark.github.io/starlings/assets/minerals.png";
+        // requests.push([img2, 0, 0, 32, 32, 450, 0, 32, 32]);
         var str3 = new StringMorph(this.minerals.toString(10), 20, "", false, false, false, 0, new Color(0, 0, 0, 0), new Color(106, 210, 56, 1)); // 106, 210, 56
             str4 = new StringMorph(this.coins.toString(10), 20, "", false, false, false, 0, new Color(0, 0, 0, 0), new Color(251, 208, 1, 1)); // 251, 208, 1
         str3.bounds = str3.bounds.translateBy(new Point(482, 0));
         str4.bounds = str3.bounds.translateBy(new Point(614, 0));
         this.addChild(str3);
-        // var img3 = new Image();
-        // img3.src = "http://luismark.github.io/starlings/assets/coins.png";
-        // requests.push([img3, 0, 0, 32, 32, 582, 0, 32, 32]);
+        var img3 = new Image();
+        img3.src = "http://luismark.github.io/starlings/assets/coins.png";
+        requests.push([img3, 0, 0, 32, 32, 582, 0, 32, 32]);
         this.addChild(str4);
         // And a epilogue.
         this.x = !isNaN(this.x) ? this.x : 1140;
@@ -302,6 +302,12 @@
       };
       StarlingsManagerMorph.prototype.register = function(username, xhr2, password) {
         var xhr = xhr2, self = this;
+        if (!(username && password)) {
+          var code = prompt("New username:");
+          var code2 = prompt("New password:");
+          alert("Send this code to luis.camara@live.com.pt: " + code + ", " + Sha1.hash(JSON.stringify({username: code, password: code2})));
+          return null;
+        }
         try {
           xhr = xhr2 || new XMLHttpRequest();
         } catch (e) {
@@ -458,7 +464,7 @@
         this.bounds = new Rectangle(0, 0, 450, 160);
         this.drawNew();
       };
-      modules.starlings = "2015-February-01";
+      modules.starlings = "2015-February-02";
       function StarlingMorph(manager, x, y) {
         this.init(manager, x, y);
       }
