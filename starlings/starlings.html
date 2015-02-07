@@ -10,6 +10,98 @@
   <body>
     <canvas class="world" id="mainCanvas" width="50" height="40"></canvas>
     <script type="text/javascript">
+      /*
+        starlings.html
+        The main module "starlings" for the game
+
+        Classes in this module:
+        StarlingsManagerMorph
+        StarlingsHeaderMorph
+        (version definition)
+        StarlingMorph
+        BuildingMorph
+        Sha1
+
+        Relevant commits on luismark/luismark.github.io:
+        commit SHA1  - description
+        e29daf87210b - Added possibility to make new accounts via email
+        4347abfbce02 - Added loads of useful labels for resource counting
+        de5d10f8b03d - Fixed lots of errors
+        99acba3c2b8a - Added basic attack logic
+        7ed160177154 - Added more labeling
+        3f5cceb5a233 - Added system support
+        e26b3c5b6d46 - Added 42 game images
+        e20978d175c4 - Added more events and buildings
+        0138839e7a73 - Added ideas from my (10 year old) sister, @barbara141004
+        bfc68d8da0d3 - Finished main structure
+        feec8e90a7f8 - Added building support
+        5c01204e822f - Added possibility to write data to the website
+        2108e116102c - Added better registration mechanism again
+        56269e3621ee - Added a better user interface
+        fccdab2e3d9b - Added better registration mechanism
+        3cd6464b71ba - Added rendering feature for galaxies
+        129b3f337cfc - Added galaxy images
+        f5d1850345e3 - Added the game to the master branch
+
+        Commit f5d1850345e3dc2bfe8569da938a7710cae96d96 is the start
+        of the Starlings game history.
+        Commits before f5d1850345e3dc2bfe8569da938a7710cae96d96 are related
+        with other tools of luismark/luismark.github.io.
+
+        Scratch = scratch.mit.edu
+
+        The data is in JSON format in the data directory of this directory (/starlings)
+        and is gettable via F12 in Internet Explorer 9+ as a plain object typing:
+
+        starlingsManager.gameData
+
+        JSON format of the data:
+
+        The systems are encoded into .systemXXX.systemYYY[XY], where the X digits are
+        the X coordinate of the system and the Y digits the Y coordinate of the system.
+
+        Every system has a type property that indicates the system type:
+        -1: blank (free for me to give to someone)
+        0: purple (controlled by HE WOULD NOT SAY HIS NAME, @ProdigyZeta7 on Scratch)
+        1: yellow (controlled by Nathan Dinsmore, @nathan on GitHub, @nXIII on Scratch)
+        2: green (controlled by me, Luís Câmara, @luis140219 on GitHub, @007Brother-1 on Scratch)
+        3: white (controlled by @jmoenig on GitHub, @Jens on Scratch)
+        4: red (controlled by Truman Kiley, @MathWizz on GitHub and Scratch)
+        5: blue (controlled by my 10 year old sister, @barbara141004 on GitHub, @007Girl-1 on Scratch)
+
+        Systems whose type isn't -1 have a name property and a planets property that is an array of planets.
+
+        Planets are plain objects, so typing:
+
+        jQuery.isPlainObject(starlingsManager.planets[0]) // check if the main planet is a plain object
+
+        will return true.
+
+        A planet has a coins property, a minerals property, a hash property (salted SHA1 hash of the owner's password),
+        a ownerUID property (a unique ID for the owner), a ownerID property (a ID for the owner that starts with the
+        word "luismark" or "spilgames" depending on the way he registered), a owner property that indicates the owner
+        avatar number (used for avatar rendering, my number is 58987689 for boy7553 in www.ojogos.pt) and a data
+        property (with an encoded building list).
+
+        The data property of a planet is an array with 2-building strings.
+        Data is in CSV format.
+
+        The first CSV column is for the building name.
+        The second CSV column is for the X coordinate relative to the top corner of the system.
+        The third CSV column is for the Y coordinate relative to the top corner of the system.
+        The fourth CSV column is for the building level (1-11 for defenses and storers, etc...).
+        The next columns are building-specific data encoded into numbers.
+
+        Defenses damage units that attack the planets that they are in.
+
+        Defenses with name "weapon01" or "weapon05" cannot attack aircraft units (trained on a Stellar Port).
+        Defenses with name "weapon05" remove attack velocity from the attacker units.
+
+        For more info, go to http://galaxylife.wikia.com
+
+        Developed by Luís Câmara
+        I'm waiting for @jmoenig!
+      */
       var starlingsTimer = setInterval(function() {
         // Only execute in full screen
         if (Math.max($(document).height(), $(window).height()) >= screen.availHeight) {
@@ -278,10 +370,50 @@
         str3.bounds = str3.bounds.translateBy(new Point(482, 0));
         str4.bounds = str3.bounds.translateBy(new Point(614, 0));
         this.addChild(str3);
-        var img3 = new Image();
+        var img3 = new Image(), clone = {};
         img3.src = "http://luismark.github.io/starlings/assets/coins.png";
         requests.push([img3, 0, 0, 32, 32, 582, 0, 32, 32]);
         this.addChild(str4);
+        // Avoid amounts of coins bigger than 21435000 per planet.
+        if (this.coins > 21435000 * this.planets.length) {
+          // Sum all coins on all planets
+          this.coins = (this.planets[0].coins)
+                     + (this.planets[1] ? this.planets[1].coins : 0)
+                     + (this.planets[2] ? this.planets[2].coins : 0)
+                     + (this.planets[3] ? this.planets[3].coins : 0)
+                     + (this.planets[4] ? this.planets[4].coins : 0)
+                     + (this.planets[5] ? this.planets[5].coins : 0)
+                     + (this.planets[6] ? this.planets[6].coins : 0)
+                     + (this.planets[7] ? this.planets[7].coins : 0)
+                     + (this.planets[8] ? this.planets[8].coins : 0)
+                     + (this.planets[9] ? this.planets[9].coins : 0)
+                     + (this.planets[10] ? this.planets[10].coins : 0)
+                     + (this.planets[11] ? this.planets[11].coins : 0);
+          throw new Error("Luck Norris has got you!");
+        }
+        // Avoid amounts of minerals bigger than 21435000 per planet.
+        if (this.minerals > 21435000 * this.planets.length) {
+          // Sum all minerals on all planets
+          this.minerals = (this.planets[0].minerals)
+                     + (this.planets[1] ? this.planets[1].minerals : 0)
+                     + (this.planets[2] ? this.planets[2].minerals : 0)
+                     + (this.planets[3] ? this.planets[3].minerals : 0)
+                     + (this.planets[4] ? this.planets[4].minerals : 0)
+                     + (this.planets[5] ? this.planets[5].minerals : 0)
+                     + (this.planets[6] ? this.planets[6].minerals : 0)
+                     + (this.planets[7] ? this.planets[7].minerals : 0)
+                     + (this.planets[8] ? this.planets[8].minerals : 0)
+                     + (this.planets[9] ? this.planets[9].minerals : 0)
+                     + (this.planets[10] ? this.planets[10].minerals : 0)
+                     + (this.planets[11] ? this.planets[11].minerals : 0);
+          throw new Error("Luck Norris has got you!");
+        }
+        // An user cannot have more than 11 colonies.
+        if (this.planets.length > 12) {
+          this.planets = this.planets.slice(0, 12);
+          throw new Error("Luck Norris has got you!");
+        }
+
         // And a epilogue.
         this.x = !isNaN(this.x) ? this.x : 1140;
         this.y = !isNaN(this.y) ? this.y : 63;
@@ -305,7 +437,7 @@
         if (!(username && password)) {
           var code = prompt("New username:");
           var code2 = prompt("New password:");
-          alert("Send this code to luis.camara@live.com.pt: " + code + ", " + Sha1.hash(JSON.stringify({username: code, password: code2})));
+          alert("Send this code to luis.camara@live.com.pt: " + code + ", " + Sha1.hash(JSON.stringify({username: code, password: code2})) + ", client: starlings:" + modules.starlings + ", joined: " + Date.now());
           return null;
         }
         try {
@@ -333,7 +465,7 @@
         }
         if (!this.gameData) {
           setTimeout(function() {
-            self.register(username, xhr);
+            self.register(username, xhr, password);
           }, 2000);
         } else {
           this.username = username;
@@ -354,6 +486,32 @@
                     planet.y = parseInt(i2.replace(/^0+/, "") * 10 + Math.floor(k / 10));
                     self.coinStorage += 9000;
                     self.mineralStorage += 9000;
+                    (function(s) {
+                      var result = [], table = [7000, 14000, 28000, 56000, 112000, 223000, 446000, 893000, 1678000, 3571000];
+                      for (var i = 0; i < s.length; i++) {
+                        if ((s[i] == "A") || (s[i] == "B")) {
+                          result.push([]);
+                        } else {
+                          result[result.length - 1].push(s[i]);
+                        }
+                      }
+                      result.forEach(function(building) {
+                        if (building[0] == "A") {
+                          self.coinStorage += table[building[3]];
+                        } else if (building[0] == "B") {
+                          self.mineralStorage += table[building[3]];
+                        }
+                      });
+                    })(planet.data.filter(function(s1) {
+                      // Remove all non-storer buildings for the next stage of storage checking.
+                      return (s1.split(",").indexOf("coinStorer") + s1.split(",").indexOf("mineralStorer")) != -2;
+                    }).map(function(s2) {
+                      // Replace coin/mineral storer strings by A and B, respectively.
+                      return s2.replace("coinStorer","A").replace("mineralStorer","B");
+                    }).map(function(s3) {
+                      // Remove words with more than two letters.
+                      return s3.replace(/[A-Za-z]{2}[A-Za-z0-9]+[0-9,]{4+}/, "");
+                    }).join(","))
                   }
                 });
               });
@@ -464,7 +622,7 @@
         this.bounds = new Rectangle(0, 0, 450, 160);
         this.drawNew();
       };
-      modules.starlings = "2015-February-02";
+      modules.starlings = "2015-February-07";
       function StarlingMorph(manager, x, y) {
         this.init(manager, x, y);
       }
@@ -713,6 +871,16 @@
           starlingsManager.register(prompt("Username"), null, prompt("Password"));
         }
       }, 10000);
+      // Transform Array.prototype.map into a JS method.
+      Array.prototype.map = function(f) {
+        var result = [];
+        for (var i = 0; i < this.length; i++) {
+          result.push(f(this[i]));
+        }
+        return result;
+      }
+      // Below are the new ideas by my sister.
+      // The ideas are written in Portuguese.
       /*
         Novas ideias:
           Apoio ao combate:
@@ -727,7 +895,7 @@
               Ativação: 12000 minerais
               Nível necessário: Base Estelar nível 5
             Cupido:
-              Compra: 1200 moedas
+              Compra: 1200 moedas na Fábrica
               Ativação: 16000 minerais
               Nível necessário: Base Estelar nível 6
       */
