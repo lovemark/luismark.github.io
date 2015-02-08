@@ -364,7 +364,7 @@
         }
         // var img2 = new Image();
         // img2.src = "http://luismark.github.io/starlings/assets/minerals.png";
-        // requests.push([img2, 0, 0, 32, 32, 450, 0, 32, 32]);
+        // requests.push([img2, 0, 0, 27, 27, 450, 0, 32, 32]);
         var str3 = new StringMorph(this.minerals.toString(10), 20, "", false, false, false, 0, new Color(0, 0, 0, 0), new Color(106, 210, 56, 1)); // 106, 210, 56
             str4 = new StringMorph(this.coins.toString(10), 20, "", false, false, false, 0, new Color(0, 0, 0, 0), new Color(251, 208, 1, 1)); // 251, 208, 1
         str3.bounds = str3.bounds.translateBy(new Point(482, 0));
@@ -372,7 +372,7 @@
         this.addChild(str3);
         var img3 = new Image(), clone = {};
         img3.src = "http://luismark.github.io/starlings/assets/coins.png";
-        requests.push([img3, 0, 0, 32, 32, 582, 0, 32, 32]);
+        requests.push([img3, 0, 0, 27, 27, 582, 0, 32, 32]);
         this.addChild(str4);
         // Avoid amounts of coins bigger than 21435000 per planet.
         if (this.coins > 21435000 * this.planets.length) {
@@ -520,7 +520,7 @@
         }
       };
       StarlingsManagerMorph.prototype.getSystemAt = function(x, y) {
-        if (!this.gameData) {
+        if ((!this.gameData) || jQuery.isEmptyObject(this.gameData)) {
           return {type: -1, name: "", planets: []};
         }
         function pad(number) {
@@ -622,7 +622,7 @@
         this.bounds = new Rectangle(0, 0, 450, 160);
         this.drawNew();
       };
-      modules.starlings = "2015-February-07";
+      modules.starlings = "2015-February-08";
       function StarlingMorph(manager, x, y) {
         this.init(manager, x, y);
       }
