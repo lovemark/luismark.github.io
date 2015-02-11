@@ -24,6 +24,7 @@
 
         Relevant commits on luismark/luismark.github.io:
         commit SHA1  - description
+        4d9fb1bfe427 - Fixed add/remove coins/minerals bug
         e29daf87210b - Added possibility to make new accounts via email
         4347abfbce02 - Added loads of useful labels for resource counting
         de5d10f8b03d - Fixed lots of errors
@@ -113,8 +114,7 @@
             world.doOneCycle();
           }, 1);
           starlingsManager.onError(function(self) {
-            self.errorMsg = new ErrorMessageMorph(self);
-            self.addChild(self.errorMsg);
+            self.error("There was an internal error!", "http://luismark.github.io/starlings/assets/oopsies.png");
           });
         }
       }, 500);
@@ -197,7 +197,7 @@
       };
       StarlingsManagerMorph.prototype.openIn = function(world) {
         var self = this;
-        this.bounds = world.bounds;
+        world.bounds = this.bounds;
         this.world = world;
         if (!contains(world.children, this)) {
           world.addChild(this);
@@ -208,6 +208,7 @@
             return child instanceof StringMorph && child.text === "Galaxy";
           }).bounds).extent().gt(new Point(0, 0))) {
             self.mode = 1;
+            self.fireChange = true;
           }
           self.children.filter(function(child) {
             return child instanceof BuildingMorph;
@@ -221,6 +222,7 @@
             self.mode = 3;
             self.x = this.nX - 3 + Math.floor((eventArea.left() + 5) / 200);
             self.y = this.nY - 1 + Math.floor((eventArea.top() - 155) / 200);
+            self.fireChange = true;
           }
         });
         world.color = new Color(0, 0, 0, 1);
@@ -413,7 +415,10 @@
           this.planets = this.planets.slice(0, 12);
           throw new Error("Luck Norris has got you!");
         }
-
+        if (this.fireChange) {
+          this.fullChanged();
+          this.fireChange = false;
+        }
         // And a epilogue.
         this.x = !isNaN(this.x) ? this.x : 1140;
         this.y = !isNaN(this.y) ? this.y : 63;
@@ -602,11 +607,24 @@
           }
         }
       }
-      StarlingsManagerMorph.prototype.error = function(msg) {
+      StarlingsManagerMorph.prototype.error = function(msg, img) {
         // Proper Morphic code must be inserted before this code.
         var e = new Error(msg);
         e.withPurpose = true;
         throw e;
+      }
+      // This contains the in-game fix to jmoenig/morphic.js#14.
+      StarlingsManagerMorph.prototype.isTransparentAt = function(point) {
+        if (!this.bounds.containsPoint(point)) {
+          return true;
+        }
+        var result = true;
+        // Avoid infinite recursion by removing this morph from the array via .slice(1).
+        jQuery.each(this.allChildren().slice(1), function(i, e) {
+          // A jQuery trick that allows to stop iterating if the function returns false (not undefined, null or 0).
+          return (result = e.isTransparentAt(point));
+        });
+        return result;
       }
       // StarlingsHeaderMorph
       // I am at the top-left corner of my manager.
@@ -622,7 +640,7 @@
         this.bounds = new Rectangle(0, 0, 450, 160);
         this.drawNew();
       };
-      modules.starlings = "2015-February-08";
+      modules.starlings = "2015-February-11";
       function StarlingMorph(manager, x, y) {
         this.init(manager, x, y);
       }
