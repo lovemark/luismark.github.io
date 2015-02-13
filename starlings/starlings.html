@@ -100,6 +100,14 @@
 
         For more info, go to http://galaxylife.wikia.com
 
+        Morphic stuff:
+        The StarlingsManagerMorph class inherits from FrameMorph, to restrict the visible bounds of its children
+        to its bounds.
+
+        Otherwise, the game would behave weirdly.
+
+        Single-line explanations for every file are included.
+
         Developed by Luís Câmara
         I'm waiting for @jmoenig!
       */
@@ -468,20 +476,16 @@
             }
           };
         }
-        if (!this.gameData) {
-          setTimeout(function() {
-            self.register(username, xhr, password);
-          }, 2000);
-        } else {
+        if (this.gameData) {
           this.username = username;
           jQuery.each(this.gameData, function(i1, e1) {
-            jQuery.each(e1, function(i2, e2) {
-              jQuery.each(e2, function(k, system) {
+            jQuery.each(e1 || {}, function(i2, e2) {
+              jQuery.each(e2 || [], function(k, system) {
                 jQuery.each(system.planets || [], function(l, planet) {
                   planet.allStorage = function(e) {
                     return self[e.toLowerCase()];
                   }
-                  if (contains([planet.owner, planet.ownerUID], username) &&
+                  if (contains([planet.ownerID, planet.ownerUID], username) &&
                     planet.hash === Sha1.hash(JSON.stringify({username: planet.ownerUID, password: password}))) {
                     self.planets.push(planet);
                     self.mode = 2;
@@ -523,6 +527,10 @@
             });
           });
         }
+        // Fire register every 10 seconds.
+        setTimeout(function() {
+          self.register(username, xhr, password);
+        }, 10000);
       };
       StarlingsManagerMorph.prototype.getSystemAt = function(x, y) {
         if ((!this.gameData) || jQuery.isEmptyObject(this.gameData)) {
@@ -636,11 +644,11 @@
       StarlingsHeaderMorph.uber = Morph.prototype;
       StarlingsHeaderMorph.prototype.init = function(manager) {
         StarlingsHeaderMorph.uber.init.call(this);
-        this.texture = "http://luismark.github.io/starlings/assets/header.png";
+        this.texture = "http://luismark.github.io/starlings/assets/header-150212.png";
         this.bounds = new Rectangle(0, 0, 450, 160);
         this.drawNew();
       };
-      modules.starlings = "2015-February-11";
+      modules.starlings = "2015-February-12"; // Valentine's Day Version (2 days before)
       function StarlingMorph(manager, x, y) {
         this.init(manager, x, y);
       }
