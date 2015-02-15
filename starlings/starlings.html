@@ -100,14 +100,6 @@
 
         For more info, go to http://galaxylife.wikia.com
 
-        Morphic stuff:
-        The StarlingsManagerMorph class inherits from FrameMorph, to restrict the visible bounds of its children
-        to its bounds.
-
-        Otherwise, the game would behave weirdly.
-
-        Single-line explanations for every file are included.
-
         Developed by Luís Câmara
         I'm waiting for @jmoenig!
       */
@@ -476,16 +468,20 @@
             }
           };
         }
-        if (this.gameData) {
+        if (!this.gameData) {
+          setTimeout(function() {
+            self.register(username, xhr, password);
+          }, 2000);
+        } else {
           this.username = username;
           jQuery.each(this.gameData, function(i1, e1) {
-            jQuery.each(e1 || {}, function(i2, e2) {
-              jQuery.each(e2 || [], function(k, system) {
+            jQuery.each(e1, function(i2, e2) {
+              jQuery.each(e2, function(k, system) {
                 jQuery.each(system.planets || [], function(l, planet) {
                   planet.allStorage = function(e) {
                     return self[e.toLowerCase()];
                   }
-                  if (contains([planet.ownerID, planet.ownerUID], username) &&
+                  if (contains([planet.owner, planet.ownerUID], username) &&
                     planet.hash === Sha1.hash(JSON.stringify({username: planet.ownerUID, password: password}))) {
                     self.planets.push(planet);
                     self.mode = 2;
@@ -527,10 +523,6 @@
             });
           });
         }
-        // Fire register every 10 seconds.
-        setTimeout(function() {
-          self.register(username, xhr, password);
-        }, 10000);
       };
       StarlingsManagerMorph.prototype.getSystemAt = function(x, y) {
         if ((!this.gameData) || jQuery.isEmptyObject(this.gameData)) {
@@ -644,11 +636,11 @@
       StarlingsHeaderMorph.uber = Morph.prototype;
       StarlingsHeaderMorph.prototype.init = function(manager) {
         StarlingsHeaderMorph.uber.init.call(this);
-        this.texture = "http://luismark.github.io/starlings/assets/header-150212.png";
+        this.texture = "http://luismark.github.io/starlings/assets/header.png";
         this.bounds = new Rectangle(0, 0, 450, 160);
         this.drawNew();
       };
-      modules.starlings = "2015-February-12"; // Valentine's Day Version (2 days before)
+      modules.starlings = "2015-February-11";
       function StarlingMorph(manager, x, y) {
         this.init(manager, x, y);
       }
@@ -904,6 +896,47 @@
           result.push(f(this[i]));
         }
         return result;
+      }
+      // As SHA1 will turn obsolete in 2017, I will switch immediately
+      // to SHA3 (SHA3_256). Jens already did the switch in 2011.
+      // SHA3_256 is implemented below.
+      function SHA3_256(str) {
+        // Got this algorithm from http://en.wikipedia.org/wiki/SHA-3
+        var start_state = 0x0001;  /* Any nonzero start state will work. */
+        var lfsr = start_state;
+        var bit;
+        var period = 0;
+        var sequence = [];
+        do
+        {
+          /* taps: 16 14 13 11; feedback polynomial: x^8 + x^6 + x^5 + x^4 + 1 */
+          bit  = ((lfsr >> 0) ^ (lfsr >> 2) ^ (lfsr >> 3) ^ (lfsr >> 4) ) & 1;
+          lfsr =  (lfsr >> 1) | (bit << 7);
+          ++period;
+          sequence.push(lfsr);
+        } while (lfsr != start_state);
+
+        var l = 5, w = 32, a = new Array(5), bit = function(i, j, k) {
+          return a[i][j] & (0 | Math.pow(2, k)) >>> k;
+        }, setbit = function(i, j, k, b) {
+          a[i][j] &= !((0 | Math.pow(2, k)) >>> k);
+          a[i][j] += (1 << b) >>> 0;
+        };
+        for (var i = 0; i < 5; i++) {
+          a[i] = [];
+          for (var j = 0; j < 5; j++) {
+            a[i][j] = 0;
+          }
+        }
+        function subround1() {
+          for (var i = 0; i < 5; i++) {
+            for (var j = 0; j < 5; j++) {
+              for (var k = 0; k < w; k++) {
+                setbit(i, j, k, bit(i, j, k) ^ bit(i, (j - 1) % 5, k) ^ bit(i, (j + 1) % 5, (k - 1) % 5));
+              }
+            }
+          }
+        }
       }
       // Below are the new ideas by my sister.
       // The ideas are written in Portuguese.
