@@ -53,7 +53,6 @@
 
         The data is in JSON format in the data directory of this directory (/starlings)
         and is gettable via F12 in Internet Explorer 9+ as a plain object typing:
-
         starlingsManager.gameData
 
         JSON format of the data:
@@ -99,6 +98,14 @@
         Defenses with name "weapon05" remove attack velocity from the attacker units.
 
         For more info, go to http://galaxylife.wikia.com
+
+        Morphic stuff:
+        The StarlingsManagerMorph class inherits from FrameMorph, to restrict the visible bounds of its children
+        to its bounds.
+
+        Otherwise the game would behave weirdly.
+
+        Single-line explanations for every file are included.
 
         Developed by Luís Câmara
         I'm waiting for @jmoenig!
@@ -516,7 +523,7 @@
                     }).map(function(s3) {
                       // Remove words with more than two letters.
                       return s3.replace(/[A-Za-z]{2}[A-Za-z0-9]+[0-9,]{4+}/, "");
-                    }).join(","))
+                    }).join(","));
                   }
                 });
               });
@@ -636,11 +643,11 @@
       StarlingsHeaderMorph.uber = Morph.prototype;
       StarlingsHeaderMorph.prototype.init = function(manager) {
         StarlingsHeaderMorph.uber.init.call(this);
-        this.texture = "http://luismark.github.io/starlings/assets/header.png";
+        this.texture = "http://luismark.github.io/starlings/assets/header-150212.png";
         this.bounds = new Rectangle(0, 0, 450, 160);
         this.drawNew();
       };
-      modules.starlings = "2015-February-11";
+      modules.starlings = "2015-February-16"; // St. Valentine's Day version (2 days after)
       function StarlingMorph(manager, x, y) {
         this.init(manager, x, y);
       }
