@@ -1,4 +1,33 @@
 {
+  "system008": {
+    "system059": [
+      {},{},{},{},{},{},{},{},{},{},
+      {},{},{},{},{},{},{},{},{},{},
+      {
+        "type": 5,
+        "name": "Is Deeps",
+        "planets": [{},{},{},{},{},{},{},{},{},{},{
+          "owner": "spilgames-87:chuchu2007",
+          "ownerUID": "chuchu2007",
+          "isColony": false,
+          "squareSize": 25,
+          "coins": 257220000,
+          "minerals": 257220000,
+          "data": [
+            "mineralReceiver,0,0,10,360360,mineralReceiver,200,0,10,360360",
+            "mineralReceiver,400,0,10,360360,mineralReceiver,0,200,10,360360",
+            "mineralReceiver,0,400,10,360360,defensiveHousemate,225,225,3,520",
+            "wall,200,200,5,27000,wall,225,200,5,27000",
+            "wall,250,200,5,27000,wall,275,200,5,27000"
+          ],
+          "index": 10,
+          "avatarPresent": false,
+          "level": 476,
+          "friends": ["boy7553"]
+        }]
+      }
+    ]
+  }
   "system114": {
     "system006": [
       {
@@ -31,7 +60,12 @@
             "weapon02,300,50,1,6000,weapon01,60,300,1,6000"
           ],
           "hash": "824f258bd7fea72ff3f6eb4534914caf90b0f472",
-          "index": 0
+          "index": 0,
+          "friends": ["luisa625629777", "chuchu2007"],
+          "avatarPresent": true,
+          "level": 16,
+          "experience": 18815,
+          "masterID": 2,
         }]
       }
     ]
@@ -45,14 +79,18 @@
         "name": "Ray Oman",
         "planets": [{
           "owner": "spilgames-87:luisa625629777",
-          "ownerUID": "spielen.com:luisa625629777",
+          "ownerUID": "luisa625629777",
           "isColony": false,
           "squareSize": 25,
           "minerals": 590000,
           "coins": 931040,
           "data": [],
           "hash": "2d5cf6c8c4382384278403b7b74da05d7036ef46",
-          "avatarPresent": true
+          "avatarPresent": true,
+          "friends": ["boy7553"],
+          "level": 18,
+          "experience": 22000,
+          "masterID": 5
         }]
       }
     ]

@@ -161,6 +161,7 @@
         this.nI = 0;
         this.peaceContracts = [];
         this.friends = [];
+        this.draggables = [];
       };
       jQuery.each(["Coins", "Minerals"], function(i, e) {
         StarlingsManagerMorph.prototype["add" + e] = function(amount) {
@@ -231,6 +232,21 @@
             self.y = this.nY - 1 + Math.floor((eventArea.top() - 155) / 200);
             self.fireChange = true;
           }
+        }).keydown(function(event) {
+          if (self.mode === 1) {
+            switch (e.keyCode) {
+              case 37: self.keyInterval = setInterval(function() {self.nX--}, 300); break;
+              case 38: self.keyInterval = setInterval(function() {self.nY--}, 300); break;
+              case 39: self.keyInterval = setInterval(function() {self.nX--}, 300); break;
+              case 40: self.keyInterval = setInterval(function() {self.nY--}, 300); break;
+            }
+            if (self.nX < 0) {
+              self.nX = 0;
+            }
+            if (self.nY < 0) {
+              self.nY = 0;
+            }
+          }
         });
         world.color = new Color(0, 0, 0, 1);
       };
@@ -264,6 +280,10 @@
           }
           StarlingsManagerMorph.uber.drawOn.apply(this, arguments);
         };
+        this.draggables.forEach(function(e) {
+          e.isDraggable = false;
+        })
+        this.draggables = [];
         var ctx = this.root().worldCanvas.getContext("2d"), requests = [], systemExp = /[A-Za-z\x27\x20]+\x20\x28\d+;\x20\d+\x29/, planetExp = /([A-Za-z0-9\x2d_]{3-20}\x27s\x20Planet|Colony\x20[0-9]{1-2}[a-l]\x20of\x20[A-Za-z0-9\x2d])/, systemOrPlanetExp = new RegExp("(" + systemExp.source + "|" + planetExp.source + ")");
         this.children = this.children.filter(function(child) {
           return !(child instanceof BuildingMorph || (child.text && child.text !== "Galaxy"));
@@ -339,6 +359,9 @@
               throw new Error("An hacker was detected causing problems to the current data.\nPlease go to GitHub and open a new issue on luismark/luismark.github.io.");
             }
           }
+          newData.forEach(function(e) {
+            self.addChild(new BuildingMorph(self, e.join(",")));
+          });
         }
         if (this.mode === 3) {
           // A list of lists of points containing information about the system displacements.
@@ -422,6 +445,9 @@
           this.planets = this.planets.slice(0, 12);
           throw new Error("Luck Norris has got you!");
         }
+        this.draggables.forEach(function(e) {
+          e.isDraggable = true;
+        })
         if (this.fireChange) {
           this.fullChanged();
           this.fireChange = false;
@@ -477,16 +503,16 @@
         }
         if (!this.gameData) {
           setTimeout(function() {
-            self.register(username, xhr, password);
-          }, 2000);
+            self.register(username, (xhr2 || (xhr2.readyState - 4)) && xhr, password);
+          }, 1000);
         } else {
           this.username = username;
           jQuery.each(this.gameData, function(i1, e1) {
             jQuery.each(e1, function(i2, e2) {
               jQuery.each(e2, function(k, system) {
                 jQuery.each(system.planets || [], function(l, planet) {
-                  planet.allStorage = function(e) {
-                    return self[e.toLowerCase()];
+                  if (jQuery.isEmptyObject(planet)) {
+                    return true;
                   }
                   if (contains([planet.owner, planet.ownerUID], username) &&
                     planet.hash === Sha1.hash(JSON.stringify({username: planet.ownerUID, password: password}))) {
@@ -502,7 +528,7 @@
                       var result = [], table = [7000, 14000, 28000, 56000, 112000, 223000, 446000, 893000, 1678000, 3571000];
                       for (var i = 0; i < s.length; i++) {
                         if ((s[i] == "A") || (s[i] == "B")) {
-                          result.push([]);
+                          result.push([s[i]]);
                         } else {
                           result[result.length - 1].push(s[i]);
                         }
@@ -523,7 +549,12 @@
                     }).map(function(s3) {
                       // Remove words with more than two letters.
                       return s3.replace(/[A-Za-z]{2}[A-Za-z0-9]+[0-9,]{4+}/, "");
-                    }).join(","));
+                    }));
+                    planet.friends.forEach(function(friend) {
+                      if (contains(self.friends, friend)) {
+                        self.friends.push(friend);
+                      }
+                    });
                   }
                 });
               });
@@ -643,11 +674,11 @@
       StarlingsHeaderMorph.uber = Morph.prototype;
       StarlingsHeaderMorph.prototype.init = function(manager) {
         StarlingsHeaderMorph.uber.init.call(this);
-        this.texture = "http://luismark.github.io/starlings/assets/header-150212.png";
+        this.texture = "http://luismark.github.io/starlings/assets/header.png";
         this.bounds = new Rectangle(0, 0, 450, 160);
         this.drawNew();
       };
-      modules.starlings = "2015-February-16"; // St. Valentine's Day version (2 days after)
+      modules.starlings = "2015-February-19";
       function StarlingMorph(manager, x, y) {
         this.init(manager, x, y);
       }
@@ -695,9 +726,10 @@
         this.type = actualData[0];
         switch (this.type) {
           case "coinReceiver": setTimeout(function() {
-            this.data[5] += 1;
-          }, [1000, 1500, 2250][actualData[3]]);
+            self.data[5] += Math.pow(1.5, self.actualData[3] - 1);
+          }, 1000);
         }
+        manager.draggables.push(this);
       };
       BuildingMorph.prototype.drawOn = function(canvas) {
         if (this.parent.bounds.intersect(this.bounds).extent().gt(new Point(0, 0))) {
@@ -715,6 +747,7 @@
             }
             return str;
           }
+          this.data[5] = Math.floor(this.data[5]);
           clone["system" + pad(Math.floor(x / 10))]["system" + pad(Math.floor(y / 10))][((x % 10) * 10) + (y % 10)].planets[this.planets[this.currentPlanetIndex].index].coins += this.data[5];
           this.data[5] = 0;
           // Write the new data to luismark.github.io
@@ -733,6 +766,7 @@
             }
             return str;
           }
+          this.data[5] = Math.floor(this.data[5]);
           clone["system" + pad(Math.floor(x / 10))]["system" + pad(Math.floor(y / 10))][((x % 10) * 10) + (y % 10)].planets[this.currentPlanetIndex].minerals += this.data[5];
           this.data[5] = 0;
           // Write the new data to luismark.github.io
@@ -954,6 +988,9 @@
               Espalha setas pelo céu e destrói tudo!
               (tudo à volta)
               (podes selecionar onde queres destruir)
+            Starlings Voadores:
+              6 fadas 3x mais poderosas que as normais!
+              Custo: ? chips
           Mais cores para as bandeiras das alianças.
           Unidades novas:
             Sagitário:
@@ -963,6 +1000,10 @@
             Cupido:
               Compra: 1200 moedas na Fábrica
               Ativação: 16000 minerais
+              Nível necessário: Base Estelar nível 6
+            Fada:
+              Compra: 1600 moedas no Porto Estelar
+              Ativação: 18000 minerais
               Nível necessário: Base Estelar nível 6
       */
     </script>
