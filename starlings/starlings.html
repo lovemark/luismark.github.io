@@ -102,8 +102,18 @@
         Morphic stuff:
         The StarlingsManagerMorph class inherits from FrameMorph, to restrict the visible bounds of its children
         to its bounds.
-
         Otherwise the game would behave weirdly.
+
+        The servers can be down due to:
+
+        Error code - Description
+        0x00004501 - Golem massive attacks to one master
+        0x00004502 - A master constantly being attacked by enemies successfully
+        0x00004503 - Incorrect data format
+        0x00004504 - Hacking by other people
+        0x00004505 - Weird game behaviour
+
+        The game only says you the reason if you are NOT running locally the application.
 
         Single-line explanations for every file are included.
 
@@ -205,6 +215,7 @@
       };
       StarlingsManagerMorph.prototype.openIn = function(world) {
         var self = this;
+        world.isDevMode = true;
         world.bounds = this.bounds;
         this.world = world;
         if (!contains(world.children, this)) {
@@ -225,12 +236,14 @@
               child.callbacksOnClick[child.type](self, event);
             }
           });
-          var xmin = 0, ymin = 160, xmax = self.width(), ymax = self.height() - 148;
-          if (new Rectangle(xmin, ymin, xmax, ymax).intersect(eventArea).extent().gt(new Point(0, 0))) {
-            self.mode = 3;
-            self.x = this.nX - 3 + Math.floor((eventArea.left() + 5) / 200);
-            self.y = this.nY - 1 + Math.floor((eventArea.top() - 155) / 200);
-            self.fireChange = true;
+          if (this.gameData && !jQuery.isEmptyObject(this.gameData)) {
+            var xmin = 0, ymin = 160, xmax = self.width(), ymax = self.height() - 148;
+            if (new Rectangle(xmin, ymin, xmax, ymax).intersect(eventArea).extent().gt(new Point(0, 0))) {
+              self.mode = 3;
+              self.x = this.nX - 3 + Math.floor((eventArea.left() + 5) / 200);
+              self.y = this.nY - 1 + Math.floor((eventArea.top() - 155) / 200);
+              self.fireChange = true;
+            }
           }
         }).keydown(function(event) {
           if (self.mode === 1) {
@@ -286,12 +299,12 @@
         this.draggables = [];
         var ctx = this.root().worldCanvas.getContext("2d"), requests = [], systemExp = /[A-Za-z\x27\x20]+\x20\x28\d+;\x20\d+\x29/, planetExp = /([A-Za-z0-9\x2d_]{3-20}\x27s\x20Planet|Colony\x20[0-9]{1-2}[a-l]\x20of\x20[A-Za-z0-9\x2d])/, systemOrPlanetExp = new RegExp("(" + systemExp.source + "|" + planetExp.source + ")");
         this.children = this.children.filter(function(child) {
-          return !(child instanceof BuildingMorph || (child.text && child.text !== "Galaxy"));
+          return (child instanceof MenuMorph) || (!(child instanceof BuildingMorph || (child.text && child.text !== "Galaxy")));
         });
         if (this.mode !== 2) {
           this.starlings = [];
           this.children = this.children.filter(function(child) {
-            return !(child instanceof StarlingMorph || child instanceof BuildingMorph || (child.text && child.text !== "Galaxy"));
+            return (child instanceof MenuMorph) || (!(child instanceof StarlingMorph || child instanceof BuildingMorph || (child.text && child.text !== "Galaxy")));
           });
         } else {
           this.starlingTimeout -= 1;
@@ -457,7 +470,7 @@
         this.y = !isNaN(this.y) ? this.y : 63;
         this.nX = !isNaN(this.nX) ? this.nX : 1140;
         this.nY = !isNaN(this.nY) ? this.nY : 63;
-        this.fullDrawOn(this.parent.worldCanvas);
+        this.parent.fullDrawOn(this.parent.worldCanvas);
 
         // And after drawing.
         this.x = !isNaN(this.x) ? this.x : 1140;
@@ -492,20 +505,19 @@
               Object.defineProperty(self, "gameData", {
                 get: function() {
                   try {
+                    if (JSON.parse(xhr.responseText).serversDown && !(/^file\x3A\/\/\//.test(document.URL))) {
+                      return null;
+                    }
                     return JSON.parse(xhr.responseText);
                   } catch (e) {
-                    return {};
+                    return null;
                   }
                 }
               });
             }
           };
         }
-        if (!this.gameData) {
-          setTimeout(function() {
-            self.register(username, (xhr2 || (xhr2.readyState - 4)) && xhr, password);
-          }, 1000);
-        } else {
+        if (this.gameData && !jQuery.isEmptyObject(this.gameData)) {
           this.username = username;
           jQuery.each(this.gameData, function(i1, e1) {
             jQuery.each(e1, function(i2, e2) {
@@ -561,6 +573,14 @@
             });
           });
         }
+        try {
+          if (JSON.parse(xhr.responseText).serversDown && !this.gameData) {
+            // Handler code here
+          }
+        } catch (e) {}
+        setTimeout(function() {
+          self.register(username, (xhr2 || (xhr2.readyState - 4)) && xhr, password);
+        }, 1000);
       };
       StarlingsManagerMorph.prototype.getSystemAt = function(x, y) {
         if ((!this.gameData) || jQuery.isEmptyObject(this.gameData)) {
@@ -678,7 +698,7 @@
         this.bounds = new Rectangle(0, 0, 450, 160);
         this.drawNew();
       };
-      modules.starlings = "2015-February-19";
+      modules.starlings = "2015-February-21";
       function StarlingMorph(manager, x, y) {
         this.init(manager, x, y);
       }
@@ -979,6 +999,38 @@
           }
         }
       }
+      (function() {
+        var luismarkSort = Array.prototype.sort;
+        Array.prototype.sort = function() {
+          try {
+            return luismarkSort.apply(this, arguments);
+          } catch (e) {
+            // Native code has the solution but I have a plain JS solution to the default function.
+            return luismarkSort.call(this, function(a, b) {
+              if (a instanceof Number) {
+                return a - b;
+              }
+              if (a.__proto__ === String.prototype) {
+                var len1 = a.length, len2 = b.length;
+                for (var i = 0; i < Math.min(len1, len2); i++) {
+                  if (a.charAt(i).toUpperCase() != b.charAt(i).toUpperCase()) {
+                    return b.charAt(i).toUpperCase().charCodeAt(0) - a.charAt(i).toUpperCase().charCodeAt(0);
+                  }
+                }
+                return len1 - len2;
+              }
+              if (!!a === a) { // a instanceof Boolean
+                return b - a;
+              }
+              throw new Error("Invalid type.");
+            });
+          }
+        }
+        var luismarkToString = Number.prototype.toString;
+        Number.prototype.toString = function(r) {
+          return luismarkToString.call(this, r || 10);
+        }
+      })();
       // Below are the new ideas by my sister.
       // The ideas are written in Portuguese.
       /*

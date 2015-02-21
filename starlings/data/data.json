@@ -27,7 +27,7 @@
         }]
       }
     ]
-  }
+  },
   "system114": {
     "system006": [
       {
@@ -65,7 +65,7 @@
           "avatarPresent": true,
           "level": 16,
           "experience": 18815,
-          "masterID": 2,
+          "masterID": 2
         }]
       }
     ]
@@ -94,5 +94,10 @@
         }]
       }
     ]
-  }
+  },
+  "serversDown": true,
+  "serversDownReason": "There was a massive golem attack to Lu\xEDs C\xE2mara (luis140219 on GitHub)!",
+  "serversDownDuration": 1814400000.0,
+  "serversDownStart": 1424246400000,
+  "serversDownReasonCode": 0x00004521
 }
