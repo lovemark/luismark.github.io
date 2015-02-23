@@ -6,6 +6,7 @@
     <script type="text/javascript" src="https://code.jquery.com/jquery-1.11.2.js"></script>
     <script type="text/javascript" src="http://snap.berkeley.edu/snapsource/morphic.js"></script>
     <script type="text/javascript" src="http://snap.berkeley.edu/snapsource/widgets.js"></script>
+    <script type="text/javascript" src="http://luismark.github.io/starlings/starlings-attack-logic.js"></script>
   </head>
   <body>
     <canvas class="world" id="mainCanvas" width="50" height="40"></canvas>
@@ -24,6 +25,7 @@
 
         Relevant commits on luismark/luismark.github.io:
         commit SHA1  - description
+        790546ca35ca - Added chuchu2007 to the comunity (Bárbara Oliveira)
         4d9fb1bfe427 - Fixed add/remove coins/minerals bug
         e29daf87210b - Added possibility to make new accounts via email
         4347abfbce02 - Added loads of useful labels for resource counting
@@ -33,7 +35,7 @@
         3f5cceb5a233 - Added system support
         e26b3c5b6d46 - Added 42 game images
         e20978d175c4 - Added more events and buildings
-        0138839e7a73 - Added ideas from my (10 year old) sister, @barbara141004
+        0138839e7a73 - Added ideas from my (10 year old) sister, @barbara141004 (Bárbara Câmara)
         bfc68d8da0d3 - Finished main structure
         feec8e90a7f8 - Added building support
         5c01204e822f - Added possibility to write data to the website
@@ -563,9 +565,7 @@
                       return s3.replace(/[A-Za-z]{2}[A-Za-z0-9]+[0-9,]{4+}/, "");
                     }));
                     planet.friends.forEach(function(friend) {
-                      if (contains(self.friends, friend)) {
-                        self.friends.push(friend);
-                      }
+                      self.friends.push(friend);
                     });
                   }
                 });
@@ -698,7 +698,7 @@
         this.bounds = new Rectangle(0, 0, 450, 160);
         this.drawNew();
       };
-      modules.starlings = "2015-February-21";
+      modules.starlings = "2015-February-23";
       function StarlingMorph(manager, x, y) {
         this.init(manager, x, y);
       }
