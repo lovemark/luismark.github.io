@@ -1,7 +1,9 @@
-// Jens, this is your space to write the attack logic.
+// Notes:
+// When onload is triggered, you've got some libraries already initialised.
+// Libraries: luismark.js, jQuery, morphic.js and spilgames
 
-jQuery.extend(StarlingsManagerMorph.prototype, {
-  attackInner: function() {
-    // Start writing here
+window.onload = function() {
+  StarlingsManagerMorph.prototype.attackInner = function() {
+    
   }
-});
+}
