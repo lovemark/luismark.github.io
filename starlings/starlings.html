@@ -119,7 +119,9 @@
 
         The game only says you the reason if you are NOT running locally the application.
 
-        Single-line explanations for every file are included.
+        Countdown to expected finish date: 28 days
+
+        Single-line explanations for every morph are included.
 
         Developed by Luís Câmara
         I'm waiting for @jmoenig!
@@ -343,6 +345,16 @@
             this.addChild(starling);
           }
         });
+        this.touches.forEach(function(i, touch) {
+          $(self.parent.worldCanvas).click({
+            clientX: touch.x,
+            clientY: touch.y,
+            offsetX: touch.x,
+            offsetY: touch.y,
+            screenX: touch.x,
+            screenY: touch.y
+          })
+        });
         if ((this.mode === 1) && this.gameData) {
           this.nX = this.nX == null ? this.x : this.nX;
           this.nY = this.nY == null ? this.y : this.nY;
@@ -397,10 +409,24 @@
             [],
             []
           ];
-          if (this.getSystemAt(this.x, this.y).type != -1) {
-            jQuery.each(this.getSystemAt(this.x, this.y).planets, function(i, e) {
+          this.planetAreas = [];
+          if (this.getSystemAt(this.nX, this.nY).type != -1) {
+            jQuery.each(this.getSystemAt(this.nX, this.nY).planets, function(i, e) {
               /*img = document.createElement("img");
               img.src = "http://luismark.github.io/starlings/assets/planet" + self.getSystemAt(self.x, self.y).type + ".png";*/
+              if (e.type == null || e.type === -1) {return;}
+              img = document.createElement("img");
+              img.src = "http://luismark.github.io/starlings/assets/" + e.type + ".png";
+              requests.push([img, 0, 0, img.width, img.height, 350 - (img.width / 2), 350 - (img.height / 2), img.width, img.height]);
+              img = document.createElement("img");
+              img.src = "http://luismark.github.io/starlings/assets/planet.png";
+              requests.push([img, 0, 0, img.width, img.height, table[e.type][i].x + 350, table[e.type][i].y + 350, 70, 70 + 350]);
+              this.planetAreas.push({area: new Rectangle(table[e.type][i].x + 350, table[e.type][i].y + 350, table[e.type][i].x + 420, table[e.type][i].y + 420), x: this.nX, y: this.nY, index: i});
+              if (planet.avatarPresent) {
+                img = document.createElement("img");
+                img.src = "http://luismark.github.io/starlings/data/" + planet.ownerID + ".bmp";
+                requests.push([img, 0, 0, 128, 128, table[e.type][i].x + 350, table[e.type][i].y + 410, 32, 32]);
+              }
             });
           }
         }
@@ -430,6 +456,15 @@
         img3.src = "http://luismark.github.io/starlings/assets/coins.png";
         requests.push([img3, 0, 0, 27, 27, 582, 0, 32, 32]);
         this.addChild(str4);
+        var skipI = 0;
+        if (this.friends.length < (this.width - 100) * 180) {
+          jQuery.each(this.friends, function(i, friend) {
+            if (!self.gameData.ids[friend]) {return --skipI;}
+            img = document.createElement("img");
+            img.src = "http://luismark.github.io/starlings/data/" + self.gameData.ids[friend] + ".bmp";
+            requests.push([img, 0, 0, 128, 128, 692, 0, 64, 64]);
+          });
+        }
         // Avoid amounts of coins bigger than 21435000 per planet.
         if (this.coins > 21435000 * this.planets.length) {
           // Sum all coins on all planets
@@ -662,8 +697,7 @@
           // Default enemies cannot be attacked from a system different from the system they live in.
           this.error("You cannot attack this enemy from our current system! If you want really to do it, colonise a planet in this system!");
         }
-        // Jens, replace this code with the correct attack code (see Issue #3 on luismark/luismark.github.io).
-        this.error("Jens is not ready!");
+        this.attackInner();
       }
       StarlingsManagerMorph.prototype.safeAttack = function() {
         try {
@@ -707,7 +741,7 @@
         this.bounds = new Rectangle(0, 0, 450, 160);
         this.drawNew();
       };
-      modules.starlings = "2015-February-27";
+      modules.starlings = "2015-February-28";
       function StarlingMorph(manager, x, y) {
         this.init(manager, x, y);
       }
