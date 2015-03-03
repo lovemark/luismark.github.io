@@ -182,6 +182,7 @@
         this.systemSize = 200;
         this.galaxyStringSeparation = 148;
         this.touches = [];
+        this.clickAreaSensitivity = 5;
       };
       jQuery.each(["Coins", "Minerals"], function(i, e) {
         StarlingsManagerMorph.prototype["add" + e] = function(amount) {
@@ -233,6 +234,7 @@
         }
         $(world.worldCanvas).click(function(event) {
           var eventArea = new Rectangle(event.clientX - 5, event.clientY - 5, event.clientX + 5, event.clientY + 5);
+          eventArea = eventArea.expandBy(this.clickAreaSensitivity - 5);
           if (eventArea.intersect(detect(self.allChildren(), function(child) {
             return child instanceof StringMorph && child.text === "Galaxy";
           }).bounds).extent().gt(new Point(0, 0))) {
@@ -255,6 +257,17 @@
               self.fireChange = true;
             }
           }
+          jQuery.each(self.planetAreas, function(i, area) {
+            if (eventArea.extent().gt(new Point(0, 0))) {
+              if (this.planets.filter(function() {
+                return (planet.x === self.x) && (planet.y === self.y) && (planet.index === i);
+              })[0]) {
+                self.mode = 2; // User planet view mode
+              } else {
+                self.mode = 4; // Choice to spy or attack
+              }
+            }
+          })
         }).keydown(function(event) {
           if (self.mode === 1) {
             switch (e.keyCode) {
@@ -457,13 +470,13 @@
         img3.src = "http://luismark.github.io/starlings/assets/coins.png";
         requests.push([img3, 0, 0, 27, 27, 582, 0, 32, 32]);
         this.addChild(str4);
-        var skipI = 0;
-        if (this.friends.length < (this.width - 100) * 180) {
+        if (this.friends.length < (this.width() - 100) * 180) {
           jQuery.each(this.friends, function(i, friend) {
-            if (!self.gameData.ids[friend]) {return --skipI;}
-            img = document.createElement("img");
-            img.src = "http://luismark.github.io/starlings/data/" + self.gameData.ids[friend] + ".bmp";
-            requests.push([img, 0, 0, 128, 128, 692, 0, 64, 64]);
+            if (self.gameData.ids[friend]) {
+              img = document.createElement("img");
+              img.src = "http://luismark.github.io/starlings/data/" + self.gameData.ids[friend] + ".bmp";
+              requests.push([img, 0, 0, 128, 128, ((self.width() - 800) / 2) + (i * 100) + 18, self.height() - 68, 64, 64]);
+            }
           });
         }
         // Avoid amounts of coins bigger than 21435000 per planet.
@@ -624,8 +637,8 @@
           }
         } catch (e) {}
         setTimeout(function() {
-          self.register(username, (xhr2 || (xhr2.readyState - 4)) && xhr, password);
-        }, 1000);
+          self.register(username, null, password);
+        }, 2000);
       };
       StarlingsManagerMorph.prototype.getSystemAt = function(x, y) {
         if ((!this.gameData) || jQuery.isEmptyObject(this.gameData)) {
@@ -728,6 +741,15 @@
         });
         return result;
       }
+      StarlingsManagerMorph.prototype.enemyShoot = function() {
+        if (--this.reactionCount) {
+          this.setPosition((Math.random() * 40) - 20, (Math.random() * 40) - 20);
+          return true;
+        } else {
+          this.reactionCount = 10;
+          return false;
+        }
+      }
       // StarlingsHeaderMorph
       // I am at the top-left corner of my manager.
       function StarlingsHeaderMorph(manager) {
@@ -742,7 +764,7 @@
         this.bounds = new Rectangle(0, 0, 450, 160);
         this.drawNew();
       };
-      modules.starlings = "2015-March-01";
+      modules.starlings = "2015-March-03";
       function StarlingMorph(manager, x, y) {
         this.init(manager, x, y);
       }
