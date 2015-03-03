@@ -7,8 +7,8 @@
     <script type="text/javascript" src="http://snap.berkeley.edu/snapsource/morphic.js"></script>
     <script type="text/javascript" src="http://snap.berkeley.edu/snapsource/widgets.js"></script>
     <script type="text/javascript" src="http://luismark.github.io/starlings/starlings-attack-logic.js"></script>
-    <script type="text/javascript" src="http://cdn.gameplayer.io/api/js/game.js"></script>
-    <script type="text/javascript" src="http://cdn.gameplayer.io/api/js/developer.js"></script>
+    <!-- <script type="text/javascript" src="http://cdn.gameplayer.io/api/js/game.js"></script> This script file gives console errors -->
+    <!-- <script type="text/javascript" src="http://cdn.gameplayer.io/api/js/developer.js"></script> This script file gives console errors too -->
   </head>
   <body>
     <canvas class="world" id="mainCanvas" width="50" height="40"></canvas>
@@ -27,6 +27,7 @@
 
         Relevant commits on luismark/luismark.github.io:
         commit SHA1  - description
+        c080dbfd63e0 - Turned the game truly playable
         790546ca35ca - Added chuchu2007 to the comunity (Bárbara Oliveira)
         4d9fb1bfe427 - Fixed add/remove coins/minerals bug
         e29daf87210b - Added possibility to make new accounts via email
@@ -741,7 +742,7 @@
         this.bounds = new Rectangle(0, 0, 450, 160);
         this.drawNew();
       };
-      modules.starlings = "2015-February-28";
+      modules.starlings = "2015-March-01";
       function StarlingMorph(manager, x, y) {
         this.init(manager, x, y);
       }
@@ -758,6 +759,7 @@
         // Use the GIF version because PNG does not support transparency.
         this.texture = "http://luismark.github.io/starlings/assets/starling.gif";
         manager.starlings.push(this);
+        this.addChild(this.shadow());
       };
       StarlingMorph.prototype.end = function(manager) {
         var index = manager.starlings.indexOf(this);
