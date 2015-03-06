@@ -183,6 +183,7 @@
         this.galaxyStringSeparation = 148;
         this.touches = [];
         this.clickAreaSensitivity = 5;
+        this.planetAreas = [];
       };
       jQuery.each(["Coins", "Minerals"], function(i, e) {
         StarlingsManagerMorph.prototype["add" + e] = function(amount) {
@@ -234,7 +235,7 @@
         }
         $(world.worldCanvas).click(function(event) {
           var eventArea = new Rectangle(event.clientX - 5, event.clientY - 5, event.clientX + 5, event.clientY + 5);
-          eventArea = eventArea.expandBy(this.clickAreaSensitivity - 5);
+          eventArea = eventArea.expandBy(self.clickAreaSensitivity - 5);
           if (eventArea.intersect(detect(self.allChildren(), function(child) {
             return child instanceof StringMorph && child.text === "Galaxy";
           }).bounds).extent().gt(new Point(0, 0))) {
@@ -248,8 +249,8 @@
               child.callbacksOnClick[child.type](self, event);
             }
           });
-          if (this.gameData && !jQuery.isEmptyObject(this.gameData)) {
-            var xmin = 0, ymin = 160, xmax = self.width(), ymax = self.height() - this.galaxyStringSeparation;
+          if (self.gameData && !jQuery.isEmptyObject(self.gameData)) {
+            var xmin = 0, ymin = 160, xmax = self.width(), ymax = self.height() - self.galaxyStringSeparation;
             if (new Rectangle(xmin, ymin, xmax, ymax).intersect(eventArea).extent().gt(new Point(0, 0))) {
               self.mode = 3;
               self.x = this.nX - 3 + Math.floor((eventArea.left() + 5) / this.systemSize);
@@ -324,7 +325,7 @@
           e.isDraggable = false;
         })
         this.draggables = [];
-        var ctx = this.root().worldCanvas.getContext("2d"), requests = [], systemExp = /[A-Za-z\x27\x20]+\x20\x28\d+;\x20\d+\x29/, planetExp = /([A-Za-z0-9\x2d_]{3-20}\x27s\x20Planet|Colony\x20[0-9]{1-2}[a-l]\x20of\x20[A-Za-z0-9\x2d])/, systemOrPlanetExp = new RegExp("(" + systemExp.source + "|" + planetExp.source + ")");
+        var ctx = this.root().worldCanvas.getContext("2d"), requests = [], systemExp = /[A-Za-z\x27\x20]+\x20\x28\d+;\x20\d+\x29/, planetExp = /([A-Za-z0-9\x2d_]{3-20}\x27s\x20Planet|Colony\x20[0-9]{1-2}[a-l]\x20of\x20[A-Za-z0-9\x2d])/, systemOrPlanetExp = new RegExp("(" + systemExp.source + "|" + planetExp.source + ")"), self = this;
         this.children = this.children.filter(function(child) {
           return (child instanceof MenuMorph) || (!(child instanceof BuildingMorph || (child.text && child.text !== "Galaxy")));
         });
@@ -572,12 +573,21 @@
                   } catch (e) {
                     return null;
                   }
+                },
+                set: function(data) {
+                  try {
+                    starlingsManager.safePost(data);
+                  } catch (e) {}
                 }
               });
             }
           };
         }
         if (this.gameData && !jQuery.isEmptyObject(this.gameData)) {
+          this.planets = [];
+          this.coins = 0;
+          this.minerals = 0;
+          this.units = [];
           this.username = username;
           jQuery.each(this.gameData, function(i1, e1) {
             jQuery.each(e1, function(i2, e2) {
@@ -592,8 +602,8 @@
                     self.mode = 2;
                     self.coins += planet.coins;
                     self.minerals += planet.minerals;
-                    planet.x = parseInt(i1.replace(/^0+/, "") * 10 + (k % 10));
-                    planet.y = parseInt(i2.replace(/^0+/, "") * 10 + Math.floor(k / 10));
+                    planet.x = parseInt(i1.replace(/[0-9]+/, "") * 10 + Math.floor(k / 10));
+                    planet.y = parseInt(i2.replace(/[0-9]+/, "") * 10 + (k % 10));
                     self.coinStorage += 9000;
                     self.mineralStorage += 9000;
                     (function(s) {
@@ -620,7 +630,7 @@
                       return s2.replace("coinStorer","A").replace("mineralStorer","B");
                     }).map(function(s3) {
                       // Remove words with more than two letters.
-                      return s3.replace(/[A-Za-z]{2}[A-Za-z0-9]+[0-9,]{4+}/, "");
+                      return s3.replace(/[A-Za-z]{2}[A-Za-z0-9]+[0-9,]{4+}/, "").split(",");
                     }));
                     planet.friends.forEach(function(friend) {
                       self.friends.push(friend);
@@ -669,7 +679,7 @@
       StarlingsManagerMorph.prototype.post = function(data) {
         var self = this, xhr = new XMLHttpRequest();
         xhr.open("POST", "http://luismark.github.io/starlings/data/data.json", true);
-        xhr.send(JSON.stringify("data"));
+        xhr.send(JSON.stringify(data));
         xhr.onreadystatechange = function() {
           if (xhr.readyState === 4) {
             this.postReadyCallback();
@@ -678,7 +688,7 @@
       };
       StarlingsManagerMorph.prototype.onPostReady = function(callback) {
         this.postReadyCallback = callback;
-      }
+      };
       StarlingsManagerMorph.prototype.attack = function() {
         // ==============================NOTES=======================
         // Never call this method if you don't have a specific catch block.
@@ -712,7 +722,7 @@
           this.error("You cannot attack this enemy from our current system! If you want really to do it, colonise a planet in this system!");
         }
         this.attackInner();
-      }
+      };
       StarlingsManagerMorph.prototype.safeAttack = function() {
         try {
           this.attack();
@@ -721,13 +731,13 @@
             this.error("There occurred an unexpected error during the attack.");
           }
         }
-      }
+      };
       StarlingsManagerMorph.prototype.error = function(msg, img) {
         // Proper Morphic code must be inserted before this code.
         var e = new Error(msg);
         e.withPurpose = true;
         throw e;
-      }
+      };
       // This contains the in-game fix to jmoenig/morphic.js#14.
       StarlingsManagerMorph.prototype.isTransparentAt = function(point) {
         if (!this.bounds.containsPoint(point)) {
@@ -740,7 +750,7 @@
           return (result = e.isTransparentAt(point));
         });
         return result;
-      }
+      };
       StarlingsManagerMorph.prototype.enemyShoot = function() {
         if (--this.reactionCount) {
           this.setPosition((Math.random() * 40) - 20, (Math.random() * 40) - 20);
@@ -749,6 +759,16 @@
           this.reactionCount = 10;
           return false;
         }
+      };
+      StarlingsManagerMorph.prototype.safePost = function(data) {
+        var secretID = [], xhr = new XMLHttpRequest();
+        for (var i = 0; i < 8; i++) {
+          secretID.push((Math.random() * 65536) >>> 0);
+        }
+        xhr.open("POST", "http://luismark.github.io/starlings/secrets/secret" + secretID.join("").map(function(s){return s.toString(16);}) + ".txt");
+        var date = new Date();
+        var newData = luismark_format("Starlings version: %s\r\nSent at: %s\r\nJSON data:\r\n%s", modules.starlings, date.toString(), data ? JSON.stringify(data) : (data + ""));
+        xhr.send(newData);
       }
       // StarlingsHeaderMorph
       // I am at the top-left corner of my manager.
@@ -764,7 +784,7 @@
         this.bounds = new Rectangle(0, 0, 450, 160);
         this.drawNew();
       };
-      modules.starlings = "2015-March-03";
+      modules.starlings = "2015-March-04";
       function StarlingMorph(manager, x, y) {
         this.init(manager, x, y);
       }
@@ -805,16 +825,17 @@
             img = document.createElement("img"),
             self = this;
         img.src = this.texture = "http://luismark.github.io/assets/" + actualData[0] + ".png";
-        img.onload = function() {
-          self.bounds = new Rectangle(160, 0, img.width + 160, img.height);
-        };
-        this.data = actualData.slice(1, actualData.length);
+        actualData = actualData.concat([0, 0, 0, 0, 0]);
+        var x = actualData[1];
+        var y = actualData[2];
+        this.data = actualData.slice(0);
         manager.addChild(this);
         this.type = actualData[0];
         switch (this.type) {
-          case "coinReceiver": setTimeout(function() {
+          case "coinReceiver":
+          case "mineralReceiver": setTimeout(function() {
             self.data[5] += Math.pow(1.5, self.actualData[3] - 1);
-          }, 1000);
+          }, 1000); break;
         }
         manager.draggables.push(this);
       };
@@ -860,6 +881,11 @@
           manager.post(clone);
           manager.onPostReady(function(manager) {
             manager.minerals = clone["system" + pad(Math.floor(x / 10))]["system" + pad(Math.floor(y / 10))][((x % 10) * 10) + (y % 10)].planets[this.currentPlanetIndex].minerals;
+          });
+        },
+        coinStorer: function(manager, event) {
+          manager.buildings.forEach(function(building) {
+
           });
         }
       };
@@ -1117,6 +1143,22 @@
           };
         }
       });
+      // This function resembles the C printf, except this implementation returns the value instead of printing it to the console.
+      function luismark_format(format) {
+        var args = Array.prototype.slice.call(arguments, 1, arguments.length), i = 0, j = 0;
+        while (i < format.length) {
+          if (format.charAt(i++) === "%") {
+            switch (format.charAt(i++)) {
+              case "s": result += args[j++];
+              case "n": result += args[j++].toString();
+              case "x": result += args[j++].toString(16);
+            }
+          } else {
+            result += format.charAt(i++);
+          }
+        }
+        return result;
+      }
       // Below are the new ideas by my sister.
       // The ideas are written in Portuguese.
       /*
