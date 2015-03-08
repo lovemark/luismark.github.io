@@ -104,6 +104,36 @@
 
         For more info, go to http://galaxylife.wikia.com
 
+        There is a mode property in the manager.
+        Possible values:
+        1 - galaxy view
+        2 - owned planet building view
+        3 - system view
+        4 - choice to spy or attack
+        5 - spying view
+        6 - attacking view
+        7 - friends' planet view
+        8 - system list dialog view
+
+        Detailed description for mode 1:
+        The point at (160, 0) in the manager is the origin of the system at (this.nX - 3, this.nY - 1), where "this" is the manager.
+        The point at (X, Y) in the manager is in the system (this.nX - 3 + ((X - 160) / 200), this.nY - 1 + (Y / 200)).
+        When clicking the "Galaxy" label in modes 1, 2, 3, 5, or 7 (this are all non-composite modes!), the mode switches to 1.
+        This also happens when clicking the Close button in mode 8.
+
+        Detailed description for mode 2:
+        A building's (BuildingMorph) coordinate stored in the game data is:
+        1. translated by (0, -160)
+        2. rotated clockwise by 45 degrees
+        3. translated by (screen.width / 2, 160)
+        before being stored in the bounds field of this BuildingMorph.
+        When clicking one of your owned planets, this happens.
+
+        Detailed description for mode 3:
+        When clicking the:
+        [system name] ([x coordinate],[y coordinate])
+        label from modes 2, 3, 5 or 7, or when clicking the Close button in mode 4 if it wasn't accessed by mode 8, the mode switches to 3.
+
         Morphic stuff:
         The StarlingsManagerMorph class inherits from FrameMorph, to restrict the visible bounds of its children
         to its bounds.
@@ -120,7 +150,7 @@
 
         The game only says you the reason if you are NOT running locally the application.
 
-        Countdown to expected finish date: 28 days
+        Countdown to expected finish date: 20 days
 
         Single-line explanations for every morph are included.
 
@@ -325,7 +355,7 @@
           e.isDraggable = false;
         })
         this.draggables = [];
-        var ctx = this.root().worldCanvas.getContext("2d"), requests = [], systemExp = /[A-Za-z\x27\x20]+\x20\x28\d+;\x20\d+\x29/, planetExp = /([A-Za-z0-9\x2d_]{3-20}\x27s\x20Planet|Colony\x20[0-9]{1-2}[a-l]\x20of\x20[A-Za-z0-9\x2d])/, systemOrPlanetExp = new RegExp("(" + systemExp.source + "|" + planetExp.source + ")"), self = this;
+        var ctx = this.root().worldCanvas.getContext("2d"), requests = [], systemExp = /[A-Za-z\x27\x20]+\x20\x28\d+;\x20\d+\x29/, planetExp = /([A-Za-z0-9\x2d_]{3,20}\x27s\x20Planet|Colony\x20[0-9]{1,2}[a-l]\x20of\x20[A-Za-z0-9\x2d])/, systemOrPlanetExp = new RegExp("(" + systemExp.source + "|" + planetExp.source + ")"), self = this;
         this.children = this.children.filter(function(child) {
           return (child instanceof MenuMorph) || (!(child instanceof BuildingMorph || (child.text && child.text !== "Galaxy")));
         });
@@ -520,6 +550,7 @@
           throw new Error("Luck Norris has got you!");
         }
         this.draggables.forEach(function(e) {
+          if ((e instanceof BuildingMorph) && !self.isDraggable) {return;}
           e.isDraggable = true;
         })
         if (this.fireChange) {
@@ -578,7 +609,9 @@
                   try {
                     starlingsManager.safePost(data);
                   } catch (e) {}
-                }
+                },
+                configurable: true,
+                enumerable: true
               });
             }
           };
@@ -784,7 +817,7 @@
         this.bounds = new Rectangle(0, 0, 450, 160);
         this.drawNew();
       };
-      modules.starlings = "2015-March-04";
+      modules.starlings = "2015-March-08";
       function StarlingMorph(manager, x, y) {
         this.init(manager, x, y);
       }
@@ -838,6 +871,9 @@
           }, 1000); break;
         }
         manager.draggables.push(this);
+        this.bounds.origin = new Point(y, x).translateBy(new Point(-160, 0)).rotateBy(-TAU / 8, new Point(0, 0)).translateBy(new Point(this.width() / 2, 160));
+        this.bounds.origin = new Point(this.top(), this.left());
+
       };
       BuildingMorph.prototype.drawOn = function(canvas) {
         if (this.parent.bounds.intersect(this.bounds).extent().gt(new Point(0, 0))) {
@@ -1121,6 +1157,9 @@
         }
         var luismarkToString = Number.prototype.toString;
         Number.prototype.toString = function(r) {
+          if (this < 0 && (r !== 2) && (r !== 8) && (r !== 16)) {
+            return "-" + luismarkToString.call(-this, r || 10);
+          }
           return luismarkToString.call(this, r || 10);
         }
       })();
@@ -1159,6 +1198,7 @@
         }
         return result;
       }
+      var TAU = 2 * Math.PI;
       // Below are the new ideas by my sister.
       // The ideas are written in Portuguese.
       /*
@@ -1168,6 +1208,9 @@
               Espalha setas pelo céu e destrói tudo!
               (tudo à volta)
               (podes selecionar onde queres destruir)
+              Custo: 5 chips
+              Materiais de coleção:
+              Seta (1), Raio (1), Braço do Sagitário (2), Arco (1)
             Starlings Voadores:
               6 fadas 3x mais poderosas que as normais!
               Custo: ? chips

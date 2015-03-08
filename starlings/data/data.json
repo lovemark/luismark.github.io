@@ -23,7 +23,8 @@
           "index": 10,
           "avatarPresent": false,
           "level": 476,
-          "friends": ["boy7553"]
+          "friends": ["boy7553"],
+          "type": 5
         }]
       }
     ]
@@ -65,7 +66,8 @@
           "avatarPresent": true,
           "level": 16,
           "experience": 18815,
-          "masterID": 2
+          "masterID": 2,
+          "type": 2
         }]
       }
     ]
@@ -91,7 +93,8 @@
           "friends": ["boy7553"],
           "level": 18,
           "experience": 22000,
-          "masterID": 5
+          "masterID": 5,
+          "type": 5
         }]
       }
     ]
