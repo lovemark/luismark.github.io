@@ -635,8 +635,8 @@
                     self.mode = 2;
                     self.coins += planet.coins;
                     self.minerals += planet.minerals;
-                    planet.x = parseInt(i1.replace(/[0-9]+/, "") * 10 + Math.floor(k / 10));
-                    planet.y = parseInt(i2.replace(/[0-9]+/, "") * 10 + (k % 10));
+                    planet.x = parseInt(i1.replace(/[^0-9]+/, "")) * 10 + Math.floor(k / 10);
+                    planet.y = parseInt(i2.replace(/[^0-9]+/, "")) * 10 + (k % 10));
                     self.coinStorage += 9000;
                     self.mineralStorage += 9000;
                     (function(s) {
@@ -667,6 +667,9 @@
                     }));
                     planet.friends.forEach(function(friend) {
                       self.friends.push(friend);
+                    });
+                    (planet.plants || []).forEach(function(plant) {
+                      self.plants.push([plant, planet]);
                     });
                   }
                 });
@@ -817,7 +820,7 @@
         this.bounds = new Rectangle(0, 0, 450, 160);
         this.drawNew();
       };
-      modules.starlings = "2015-March-08";
+      modules.starlings = "2015-March-09";
       function StarlingMorph(manager, x, y) {
         this.init(manager, x, y);
       }
@@ -923,6 +926,40 @@
           manager.buildings.forEach(function(building) {
 
           });
+        }
+      };
+      // PlantMorph
+      // I represent a plant on a planet.
+      function PlantMorph(manager, type, size) {
+        this.init(manager, type, size);
+      }
+      PlantMorph.prototype = new Morph();
+      PlantMorph.prototype.constructor = PlantMorph;
+      PlantMorph.uber = Morph.prototype;
+      PlantMorph.prototype.init = function(manager, type, size) {
+        PlantMorph.uber.init.call(this);
+        this.texture = "http://luismark.github.io/starlings/assets/" + type + size + ".png";
+        this.size = ["Small", "", "Big", "Extra"].indexOf(size);
+        this.type = type;
+        manager.addChild(this);
+      };
+      PlantMorph.prototype.drawNew = function() {
+        this.image = document.createElement("img");
+        this.image.src = this.texture;
+        this.image.onload = function() {
+          this.changed();
+        }
+      };
+      PlantMorph.prototype.mouseClickLeft = function(event) {
+        var extraSize = 75, newCoins = this.parent.coins, planet = manager.planets[manager.currentPlanetIndex];
+        if (contains(["yellowcris", "radquid"], this.type) {
+          extraSize += 45;
+        }
+        switch (this.size) {
+          case "Small": planet.coins += 7; break;
+          case "": planet.coins += 22; break;
+          case "big": planet.coins += 45; break;
+          case "extra": planet.coins += extraSize; break;
         }
       };
       /**
