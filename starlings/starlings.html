@@ -636,7 +636,7 @@
                     self.coins += planet.coins;
                     self.minerals += planet.minerals;
                     planet.x = parseInt(i1.replace(/[^0-9]+/, "")) * 10 + Math.floor(k / 10);
-                    planet.y = parseInt(i2.replace(/[^0-9]+/, "")) * 10 + (k % 10));
+                    planet.y = parseInt(i2.replace(/[^0-9]+/, "")) * 10 + (k % 10);
                     self.coinStorage += 9000;
                     self.mineralStorage += 9000;
                     (function(s) {
@@ -952,7 +952,7 @@
       };
       PlantMorph.prototype.mouseClickLeft = function(event) {
         var extraSize = 75, newCoins = this.parent.coins, planet = manager.planets[manager.currentPlanetIndex];
-        if (contains(["yellowcris", "radquid"], this.type) {
+        if (contains(["yellowcris", "radquid"], this.type)) {
           extraSize += 45;
         }
         switch (this.size) {
