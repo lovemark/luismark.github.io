@@ -466,8 +466,8 @@
               img = document.createElement("img");
               img.src = "http://luismark.github.io/starlings/assets/planet.png";
               requests.push([img, 0, 0, img.width, img.height, table[e.type][i].x + 350, table[e.type][i].y + 350, 70, 70 + 350]);
-              this.planetAreas.push({area: new Rectangle(table[e.type][i].x + 350, table[e.type][i].y + 350, table[e.type][i].x + 420, table[e.type][i].y + 420), x: this.nX, y: this.nY, index: i});
-              if (planet.avatarPresent) {
+              self.planetAreas.push({area: new Rectangle(table[e.type][i].x + 350, table[e.type][i].y + 350, table[e.type][i].x + 420, table[e.type][i].y + 420), x: this.nX, y: this.nY, index: i});
+              if (e.avatarPresent) {
                 img = document.createElement("img");
                 img.src = "http://luismark.github.io/starlings/data/" + planet.ownerID + ".bmp";
                 requests.push([img, 0, 0, 128, 128, table[e.type][i].x + 350, table[e.type][i].y + 410, 32, 32]);
@@ -531,17 +531,17 @@
         if (this.minerals > 21435000 * this.planets.length) {
           // Sum all minerals on all planets
           this.minerals = (this.planets[0].minerals)
-                     + (this.planets[1] ? this.planets[1].minerals : 0)
-                     + (this.planets[2] ? this.planets[2].minerals : 0)
-                     + (this.planets[3] ? this.planets[3].minerals : 0)
-                     + (this.planets[4] ? this.planets[4].minerals : 0)
-                     + (this.planets[5] ? this.planets[5].minerals : 0)
-                     + (this.planets[6] ? this.planets[6].minerals : 0)
-                     + (this.planets[7] ? this.planets[7].minerals : 0)
-                     + (this.planets[8] ? this.planets[8].minerals : 0)
-                     + (this.planets[9] ? this.planets[9].minerals : 0)
-                     + (this.planets[10] ? this.planets[10].minerals : 0)
-                     + (this.planets[11] ? this.planets[11].minerals : 0);
+                        + (this.planets[1] ? this.planets[1].minerals : 0)
+                        + (this.planets[2] ? this.planets[2].minerals : 0)
+                        + (this.planets[3] ? this.planets[3].minerals : 0)
+                        + (this.planets[4] ? this.planets[4].minerals : 0)
+                        + (this.planets[5] ? this.planets[5].minerals : 0)
+                        + (this.planets[6] ? this.planets[6].minerals : 0)
+                        + (this.planets[7] ? this.planets[7].minerals : 0)
+                        + (this.planets[8] ? this.planets[8].minerals : 0)
+                        + (this.planets[9] ? this.planets[9].minerals : 0)
+                        + (this.planets[10] ? this.planets[10].minerals : 0)
+                        + (this.planets[11] ? this.planets[11].minerals : 0);
           throw new Error("Luck Norris has got you!");
         }
         // An user cannot have more than 11 colonies.
@@ -820,7 +820,7 @@
         this.bounds = new Rectangle(0, 0, 450, 160);
         this.drawNew();
       };
-      modules.starlings = "2015-March-09";
+      modules.starlings = "2015-March-16";
       function StarlingMorph(manager, x, y) {
         this.init(manager, x, y);
       }
