@@ -282,6 +282,7 @@
           if (self.gameData && !jQuery.isEmptyObject(self.gameData)) {
             var xmin = 0, ymin = 160, xmax = self.width(), ymax = self.height() - self.galaxyStringSeparation;
             if (new Rectangle(xmin, ymin, xmax, ymax).intersect(eventArea).extent().gt(new Point(0, 0))) {
+              self.getSystemAt(this.nX - 3 + Math.floor((eventArea.left() + 5) / this.systemSize), this.nY - 1 + Math.floor((eventArea.top() - 155) / this.systemSize));
               self.mode = 3;
               self.x = this.nX - 3 + Math.floor((eventArea.left() + 5) / this.systemSize);
               self.y = this.nY - 1 + Math.floor((eventArea.top() - 155) / this.systemSize);
@@ -645,6 +646,15 @@
                     self.mineralStorage += 9000;
                     (function(s) {
                       var result = [], table = [7000, 14000, 28000, 56000, 112000, 223000, 446000, 893000, 1678000, 3571000];
+                      if (s instanceof Array) {
+                        var temp = [];
+                        for (var j = 0; j < s.length; j++) {
+                          for (var k = 0; k < s[j].length; k++) {
+                            temp.push(s[j][k]);
+                          }
+                        }
+                        s = temp;
+                      }
                       for (var i = 0; i < s.length; i++) {
                         if ((s[i] == "A") || (s[i] == "B")) {
                           result.push([s[i]]);
@@ -810,20 +820,37 @@
         var newData = luismark_format("Starlings version: %s\r\nSent at: %s\r\nJSON data:\r\n%s", modules.starlings, date.toString(), data ? JSON.stringify(data) : (data + ""));
         xhr.send(newData);
       };
-      StarlingsManagerMorph.prototype.contextMenu = function() {
-        var menu = FrameMorph.prototype.contextMenu.call(this), self = this;
+      StarlingsManagerMorph.prototype.userMenu = function() {
+        var menu = new MenuMorph(this, "Starlings"), self = this;
         menu.addItem("set X...", function() {
           if (contains[1, 2, 3, 5, 7], self.mode) {
             self.mode = 1;
-
+            self.nX = parseInt(prompt("New X coordinate", this.nX));
           } else if ((self.mode === 4) || (self.mode === 8)) {
             this.children.forEach(function(child) {
               if (child.isStarlingsDialog) {
                 this.removeChild(child);
               }
             });
+            self.mode = 1;
+            self.nX = parseInt(prompt("New X coordinate", this.nX));
           }
         });
+        menu.addItem("set Y...", function() {
+          if (contains[1, 2, 3, 5, 7], self.mode) {
+            self.mode = 1;
+            self.nY = parseInt(prompt("New Y coordinate", this.nY));
+          } else if ((self.mode === 4) || (self.mode === 8)) {
+            this.children.forEach(function(child) {
+              if (child.isStarlingsDialog) {
+                this.removeChild(child);
+              }
+            });
+            self.mode = 1;
+            self.nY = parseInt(prompt("New Y coordinate", this.nY));
+          }
+        });
+        return menu;
       };
       // StarlingsHeaderMorph
       // I am at the top-left corner of my manager.
@@ -839,7 +866,7 @@
         this.bounds = new Rectangle(0, 0, 450, 160);
         this.drawNew();
       };
-      modules.starlings = "2015-March-18";
+      modules.starlings = "2015-March-19";
       function StarlingMorph(manager, x, y) {
         this.init(manager, x, y);
       }
@@ -888,9 +915,9 @@
         this.type = actualData[0];
         switch (this.type) {
           case "coinReceiver":
-          case "mineralReceiver": setTimeout(function() {
+          case "mineralReceiver": this.intervals = [setInterval(function() {
             self.data[5] += Math.pow(1.5, self.actualData[3] - 1);
-          }, 1000); break;
+          }, 1000)]; break;
         }
         manager.draggables.push(this);
         this.bounds.origin = new Point(y, x).translateBy(new Point(-160, 0)).rotateBy(-TAU / 8, new Point(0, 0)).translateBy(new Point(this.width() / 2, 160));
@@ -992,10 +1019,23 @@
         this.addChild(newString("Spy or attack?", 16, new Color(255, 255, 255, 1)));
         this.color = new Color(0, 0, 0, 0.86);
         this.isStarlingsDialog = true;
-      }
+      };
       function newString(text, size, colour) {
         return new StringMorph(text, size, "", false, false, false, 0, new Color(0, 0, 0, 0), colour);
       }
+      // SpyCapsuleMorph
+      // I represent a spy capsule.
+      function SpyCapsuleMorph(manager) {
+        this.init(manager);
+      }
+      SpyCapsuleMorph.prototype = new Morph();
+      SpyCapsuleMorph.prototype.constructor = SpyCapsuleMorph;
+      SpyCapsuleMorph.uber = Morph.prototype;
+      SpyCapsuleMorph.prototype.init = function(manager) {
+        SpyCapsuleMorph.uber.init.call(this);
+        Morph.prototype.trackChanges = false;
+        this.bounds = new Rectangle(160, 0, manager.height - manager.galaxyStringSeparation).intersect(new Rectangle(x, y, 521, 521));
+      };
       /**
        * SHA-1 hash function reference implementation.
        *
