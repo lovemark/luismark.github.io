@@ -348,6 +348,7 @@
             try {
               context.drawImage.apply(context, requests[i]);
             } catch (e) {
+              if (!MorphicPreferences.debugMode) {continue;}
               console.log("An exception occurred at StarlingsManagerMorph.prototype.drawOn.");
               for (name in e) {
                 console.log("Exception's " + name + ": " + e[name]);
@@ -554,10 +555,14 @@
           this.planets = this.planets.slice(0, 12);
           throw new Error("Luck Norris has got you!");
         }
+        (function change(morph) {
+          morph.changed();
+          morph.children.forEach(change);
+        })(this);
         this.draggables.forEach(function(e) {
           if ((e instanceof BuildingMorph) && !self.isDraggable) {return;}
           e.isDraggable = true;
-        })
+        });
         if (this.fireChange) {
           this.fullChanged();
           this.fireChange = false;
@@ -644,6 +649,11 @@
                     planet.y = parseInt(i2.replace(/[^0-9]+/, "")) * 10 + (k % 10);
                     self.coinStorage += 9000;
                     self.mineralStorage += 9000;
+                    if (!planet.isColony) {
+                      self.nX = self.x = planet.x;
+                      self.nY = self.y = planet.y;
+                      self.nI = l;
+                    }
                     (function(s) {
                       var result = [], table = [7000, 14000, 28000, 56000, 112000, 223000, 446000, 893000, 1678000, 3571000];
                       if (s instanceof Array) {
@@ -852,6 +862,28 @@
         });
         return menu;
       };
+      StarlingsManagerMorph.prototype.developersMenu = function() {
+        var menu = FrameMorph.prototype.developersMenu.call(this), self = this;
+        menu.addLine();
+        menu.addItem("set mode...", function() {
+          var mode = prompt("New mode", self.mode).replace("/(^[\s]*|[\s]*$)/", "");
+          if (!mode) {return;}
+          if (self.mode === 6) {return;}
+          if ((mode.charCodeAt(0) > 48) && (mode.charCodeAt(0) < 58)) {
+            self.mode = mode.charCodeAt(0) - 48;
+          }
+          if (mode.toLowerCase() === "galaxy") {
+            self.mode = 1;
+          }
+          if (mode.toLowerCase() === "planet") {
+            self.mode = 2;
+          }
+          if (mode.toLowerCase() === "system") {
+            self.mode = 3;
+          }
+        });
+        return menu;
+      };
       // StarlingsHeaderMorph
       // I am at the top-left corner of my manager.
       function StarlingsHeaderMorph(manager) {
@@ -866,7 +898,7 @@
         this.bounds = new Rectangle(0, 0, 450, 160);
         this.drawNew();
       };
-      modules.starlings = "2015-March-19";
+      modules.starlings = "2015-March-20";
       function StarlingMorph(manager, x, y) {
         this.init(manager, x, y);
       }
