@@ -6,10 +6,157 @@
     <script type="text/javascript" src="https://code.jquery.com/jquery-1.11.2.js"></script>
     <script type="text/javascript" src="http://snap.berkeley.edu/snapsource/morphic.js"></script>
     <script type="text/javascript" src="http://snap.berkeley.edu/snapsource/widgets.js"></script>
+    <script type="text/javascript" src="http://luismark.github.io/starlings/starlings-attack-logic.js"></script>
+    <!-- <script type="text/javascript" src="http://cdn.gameplayer.io/api/js/game.js"></script> This script file gives console errors -->
+    <!-- <script type="text/javascript" src="http://cdn.gameplayer.io/api/js/developer.js"></script> This script file gives console errors too -->
   </head>
   <body>
     <canvas class="world" id="mainCanvas" width="50" height="40"></canvas>
     <script type="text/javascript">
+      /*
+        starlings.html
+        The main module "starlings" for the game
+
+        Classes in this module:
+        StarlingsManagerMorph
+        StarlingsHeaderMorph
+        (version definition)
+        StarlingMorph
+        BuildingMorph
+        Sha1
+
+        Relevant commits on luismark/luismark.github.io:
+        commit SHA1  - description
+        c080dbfd63e0 - Turned the game truly playable
+        790546ca35ca - Added chuchu2007 to the comunity (Bárbara Oliveira)
+        4d9fb1bfe427 - Fixed add/remove coins/minerals bug
+        e29daf87210b - Added possibility to make new accounts via email
+        4347abfbce02 - Added loads of useful labels for resource counting
+        de5d10f8b03d - Fixed lots of errors
+        99acba3c2b8a - Added basic attack logic
+        7ed160177154 - Added more labeling
+        3f5cceb5a233 - Added system support
+        e26b3c5b6d46 - Added 42 game images
+        e20978d175c4 - Added more events and buildings
+        0138839e7a73 - Added ideas from my (10 year old) sister, @barbara141004 (Bárbara Câmara)
+        bfc68d8da0d3 - Finished main structure
+        feec8e90a7f8 - Added building support
+        5c01204e822f - Added possibility to write data to the website
+        2108e116102c - Added better registration mechanism again
+        56269e3621ee - Added a better user interface
+        fccdab2e3d9b - Added better registration mechanism
+        3cd6464b71ba - Added rendering feature for galaxies
+        129b3f337cfc - Added galaxy images
+        f5d1850345e3 - Added the game to the master branch
+
+        Commit f5d1850345e3dc2bfe8569da938a7710cae96d96 is the start
+        of the Starlings game history.
+        Commits before f5d1850345e3dc2bfe8569da938a7710cae96d96 are related
+        with other tools of luismark/luismark.github.io.
+
+        Scratch = scratch.mit.edu
+
+        The data is in JSON format in the data directory of this directory (/starlings)
+        and is gettable via F12 in Internet Explorer 9+ as a plain object typing:
+        starlingsManager.gameData
+
+        JSON format of the data:
+
+        The systems are encoded into .systemXXX.systemYYY[XY], where the X digits are
+        the X coordinate of the system and the Y digits the Y coordinate of the system.
+
+        Every system has a type property that indicates the system type:
+        -1: blank (free for me to give to someone)
+        0: purple (controlled by HE WOULD NOT SAY HIS NAME, @ProdigyZeta7 on Scratch)
+        1: yellow (controlled by Nathan Dinsmore, @nathan on GitHub, @nXIII on Scratch)
+        2: green (controlled by me, Luís Câmara, @luis140219 on GitHub, @007Brother-1 on Scratch)
+        3: white (controlled by @jmoenig on GitHub, @Jens on Scratch)
+        4: red (controlled by Truman Kiley, @MathWizz on GitHub and Scratch)
+        5: blue (controlled by my 10 year old sister, @barbara141004 on GitHub, @007Girl-1 on Scratch)
+
+        Systems whose type isn't -1 have a name property and a planets property that is an array of planets.
+
+        Planets are plain objects, so typing:
+
+        jQuery.isPlainObject(starlingsManager.planets[0]) // check if the main planet is a plain object
+
+        will return true.
+
+        A planet has a coins property, a minerals property, a hash property (salted SHA1 hash of the owner's password),
+        a ownerUID property (a unique ID for the owner), a ownerID property (a ID for the owner that starts with the
+        word "luismark" or "spilgames" depending on the way he registered), a owner property that indicates the owner
+        avatar number (used for avatar rendering, my number is 58987689 for boy7553 in www.ojogos.pt) and a data
+        property (with an encoded building list).
+
+        The data property of a planet is an array with 2-building strings.
+        Data is in CSV format.
+
+        The first CSV column is for the building name.
+        The second CSV column is for the X coordinate relative to the top corner of the system.
+        The third CSV column is for the Y coordinate relative to the top corner of the system.
+        The fourth CSV column is for the building level (1-11 for defenses and storers, etc...).
+        The next columns are building-specific data encoded into numbers.
+
+        Defenses damage units that attack the planets that they are in.
+
+        Defenses with name "weapon01" or "weapon05" cannot attack aircraft units (trained on a Stellar Port).
+        Defenses with name "weapon05" remove attack velocity from the attacker units.
+
+        For more info, go to http://galaxylife.wikia.com
+
+        There is a mode property in the manager.
+        Possible values:
+        1 - galaxy view
+        2 - owned planet building view
+        3 - system view
+        4 - choice to spy or attack
+        5 - spying view
+        6 - attacking view
+        7 - friends' planet view
+        8 - system list dialog view
+
+        Detailed description for mode 1:
+        The point at (160, 0) in the manager is the origin of the system at (this.nX - 3, this.nY - 1), where "this" is the manager.
+        The point at (X, Y) in the manager is in the system (this.nX - 3 + ((X - 160) / 200), this.nY - 1 + (Y / 200)).
+        When clicking the "Galaxy" label in modes 1, 2, 3, 5, or 7 (this are all non-composite modes!), the mode switches to 1.
+        This also happens when clicking the Close button in mode 8.
+
+        Detailed description for mode 2:
+        A building's (BuildingMorph) coordinate stored in the game data is:
+        1. translated by (0, -160)
+        2. rotated clockwise by 45 degrees
+        3. translated by (screen.width / 2, 160)
+        before being stored in the bounds field of this BuildingMorph.
+        When clicking one of your owned planets, this happens.
+
+        Detailed description for mode 3:
+        When clicking the:
+        [system name] ([x coordinate],[y coordinate])
+        label from modes 2, 3, 5 or 7, or when clicking the Close button in mode 4 if it wasn't accessed by mode 8, the mode switches to 3.
+
+        Morphic stuff:
+        The StarlingsManagerMorph class inherits from FrameMorph, to restrict the visible bounds of its children
+        to its bounds.
+        Otherwise the game would behave weirdly.
+
+        The servers can be down due to:
+
+        Error code - Description
+        0x00004501 - Golem massive attacks to one master
+        0x00004502 - A master constantly being attacked by enemies successfully
+        0x00004503 - Incorrect data format
+        0x00004504 - Hacking by other people
+        0x00004505 - Weird game behaviour
+
+        The game only says you the reason if you are NOT running locally the application.
+
+        Countdown to expected finish date: 10 days
+
+        Single-line explanations for every morph are included.
+
+        Developed by Luís Câmara
+        I'm waiting for @jmoenig!
+      */
       var starlingsTimer = setInterval(function() {
         // Only execute in full screen
         if (Math.max($(document).height(), $(window).height()) >= screen.availHeight) {
@@ -21,8 +168,7 @@
             world.doOneCycle();
           }, 1);
           starlingsManager.onError(function(self) {
-            self.errorMsg = new ErrorMessageMorph(self);
-            self.addChild(self.errorMsg);
+            self.error("There was an internal error!", "http://luismark.github.io/starlings/assets/oopsies.png");
           });
         }
       }, 500);
@@ -59,6 +205,15 @@
         this.nY = this.y = 63;
         this.coinCapacity = 0;
         this.mineralCapacity = 0;
+        this.nI = 0;
+        this.peaceContracts = [];
+        this.friends = [];
+        this.draggables = [];
+        this.systemSize = 200;
+        this.galaxyStringSeparation = 148;
+        this.touches = [];
+        this.clickAreaSensitivity = 5;
+        this.planetAreas = [];
       };
       jQuery.each(["Coins", "Minerals"], function(i, e) {
         StarlingsManagerMorph.prototype["add" + e] = function(amount) {
@@ -102,17 +257,20 @@
       };
       StarlingsManagerMorph.prototype.openIn = function(world) {
         var self = this;
-        this.bounds = world.bounds;
+        world.isDevMode = true;
+        world.bounds = this.bounds;
         this.world = world;
         if (!contains(world.children, this)) {
           world.addChild(this);
         }
         $(world.worldCanvas).click(function(event) {
           var eventArea = new Rectangle(event.clientX - 5, event.clientY - 5, event.clientX + 5, event.clientY + 5);
+          eventArea = eventArea.expandBy(self.clickAreaSensitivity - 5);
           if (eventArea.intersect(detect(self.allChildren(), function(child) {
             return child instanceof StringMorph && child.text === "Galaxy";
           }).bounds).extent().gt(new Point(0, 0))) {
             self.mode = 1;
+            self.fireChange = true;
           }
           self.children.filter(function(child) {
             return child instanceof BuildingMorph;
@@ -121,12 +279,50 @@
               child.callbacksOnClick[child.type](self, event);
             }
           });
-          var xmin = 0, ymin = 160, xmax = self.width(), ymax = self.height() - 148;
-          if (new Rectangle(xmin, ymin, xmax, ymax).intersect(eventArea).extent().gt(new Point(0, 0))) {
-            self.mode = 3;
-            self.x = this.nX - 3 + Math.floor((eventArea.left() + 5) / 200);
-            self.y = this.nY - 1 + Math.floor((eventArea.top() - 155) / 200);
+          if (self.gameData && !jQuery.isEmptyObject(self.gameData)) {
+            var xmin = 0, ymin = 160, xmax = self.width(), ymax = self.height() - self.galaxyStringSeparation;
+            if (new Rectangle(xmin, ymin, xmax, ymax).intersect(eventArea).extent().gt(new Point(0, 0))) {
+              self.getSystemAt(this.nX - 3 + Math.floor((eventArea.left() + 5) / this.systemSize), this.nY - 1 + Math.floor((eventArea.top() - 155) / this.systemSize));
+              self.mode = 3;
+              self.x = this.nX - 3 + Math.floor((eventArea.left() + 5) / this.systemSize);
+              self.y = this.nY - 1 + Math.floor((eventArea.top() - 155) / this.systemSize);
+              self.fireChange = true;
+            }
           }
+          jQuery.each(self.planetAreas, function(i, area) {
+            if (eventArea.intersect(area).extent().gt(new Point(0, 0))) {
+              if (this.planets.filter(function() {
+                return (planet.x === self.x) && (planet.y === self.y) && (planet.index === i);
+              })[0]) {
+                self.mode = 2; // User planet view mode
+              } else {
+                if (contains(self.friends, self.getPlanetAt(this.nX, this.nY, i).owner.split(":")[1])) {
+                  self.mode = 7; // Friend helping mode
+                } else {
+                  self.mode = 4; // Choice to spy or attack
+                }
+              }
+            }
+          })
+        }).keydown(function(event) {
+          if (self.mode === 1) {
+            switch (e.keyCode) {
+              case 37: self.keyInterval = setInterval(function() {self.nX--}, 300); break;
+              case 38: self.keyInterval = setInterval(function() {self.nY--}, 300); break;
+              case 39: self.keyInterval = setInterval(function() {self.nX--}, 300); break;
+              case 40: self.keyInterval = setInterval(function() {self.nY--}, 300); break;
+            }
+            if (self.nX < 0) {
+              self.nX = 0;
+            }
+            if (self.nY < 0) {
+              self.nY = 0;
+            }
+          }
+        }).touchstart(function(event) {
+          this.touches = [event.touches[0]];
+        }).touchmove(function(event) {
+          this.touches.push(event.touches[0]);
         });
         world.color = new Color(0, 0, 0, 1);
       };
@@ -150,21 +346,29 @@
           context.fillRect(0, 0, this.width(), this.height());
           for (var i = 0; i < requests.length; i++) {
             try {
-              ctx.drawImage.apply(ctx, requests[i]);
+              context.drawImage.apply(context, requests[i]);
             } catch (e) {
+              if (!MorphicPreferences.debugMode) {continue;}
               console.log("An exception occurred at StarlingsManagerMorph.prototype.drawOn.");
               for (name in e) {
                 console.log("Exception's " + name + ": " + e[name]);
               }
             }
           }
-          // Jens, insert your code here.
+          StarlingsManagerMorph.uber.drawOn.apply(this, arguments);
         };
-        var ctx = this.root().worldCanvas.getContext("2d"), requests = [], systemExp = /[A-Za-z\x27\x20]+\x20\x28\d+;\x20\d+\x29/, planetExp = /([A-Za-z0-9\x2d_]{3-20}\x27s\x20Planet|Colony\x20[0-9]{1-2}[a-l]\x20of\x20[A-Za-z0-9\x2d])/;
+        this.draggables.forEach(function(e) {
+          e.isDraggable = false;
+        })
+        this.draggables = [];
+        var ctx = this.root().worldCanvas.getContext("2d"), requests = [], systemExp = /[A-Za-z\x27\x20]+\x20\x28\d+;\x20\d+\x29/, planetExp = /([A-Za-z0-9\x2d_]{3,20}\x27s\x20Planet|Colony\x20[0-9]{1,2}[a-l]\x20of\x20[A-Za-z0-9\x2d])/, systemOrPlanetExp = new RegExp("(" + systemExp.source + "|" + planetExp.source + ")"), self = this;
+        this.children = this.children.filter(function(child) {
+          return (child instanceof MenuMorph) || (!(child instanceof BuildingMorph || (child.text && child.text !== "Galaxy")));
+        });
         if (this.mode !== 2) {
           this.starlings = [];
           this.children = this.children.filter(function(child) {
-            return !(child instanceof StarlingMorph || child instanceof BuildingMorph || (child.text && (((this.mode == 1) && systemExp.test(child.text)) || planetExp.test(child.text))));
+            return (child instanceof MenuMorph) || (!(child instanceof StarlingMorph || child instanceof BuildingMorph || (child.text && child.text !== "Galaxy")));
           });
         } else {
           this.starlingTimeout -= 1;
@@ -191,6 +395,16 @@
           if (!contains(this.children, starling)) {
             this.addChild(starling);
           }
+        });
+        this.touches.forEach(function(i, touch) {
+          $(self.parent.worldCanvas).click({
+            clientX: touch.x,
+            clientY: touch.y,
+            offsetX: touch.x,
+            offsetY: touch.y,
+            screenX: touch.x,
+            screenY: touch.y
+          })
         });
         if ((this.mode === 1) && this.gameData) {
           this.nX = this.nX == null ? this.x : this.nX;
@@ -232,6 +446,9 @@
               throw new Error("An hacker was detected causing problems to the current data.\nPlease go to GitHub and open a new issue on luismark/luismark.github.io.");
             }
           }
+          newData.forEach(function(e) {
+            self.addChild(new BuildingMorph(self, e.join(",")));
+          });
         }
         if (this.mode === 3) {
           // A list of lists of points containing information about the system displacements.
@@ -243,16 +460,30 @@
             [],
             []
           ];
-          if (this.getSystemAt(this.x, this.y).type != -1) {
-            jQuery.each(this.getSystemAt(this.x, this.y).planets, function(i, e) {
+          this.planetAreas = [];
+          if (this.getSystemAt(this.nX, this.nY).type != -1) {
+            jQuery.each(this.getSystemAt(this.nX, this.nY).planets, function(i, e) {
               /*img = document.createElement("img");
               img.src = "http://luismark.github.io/starlings/assets/planet" + self.getSystemAt(self.x, self.y).type + ".png";*/
+              if (e.type == null || e.type === -1) {return;}
+              img = document.createElement("img");
+              img.src = "http://luismark.github.io/starlings/assets/" + e.type + ".png";
+              requests.push([img, 0, 0, img.width, img.height, (self.bounds.corner.x / 2) - (img.width / 2), (self.bounds.corner.y / 2) + 80 - (img.height / 2), img.width, img.height]);
+              img = document.createElement("img");
+              img.src = "http://luismark.github.io/starlings/assets/planet.png";
+              requests.push([img, 0, 0, img.width, img.height, table[e.type][i].x + 350, table[e.type][i].y + 350, 70, 70 + 350]);
+              self.planetAreas.push({area: new Rectangle(table[e.type][i].x + 350, table[e.type][i].y + 350, table[e.type][i].x + 420, table[e.type][i].y + 420), x: this.nX, y: this.nY, index: i});
+              if (e.avatarPresent) {
+                img = document.createElement("img");
+                img.src = "http://luismark.github.io/starlings/data/" + e.ownerID + ".bmp";
+                requests.push([img, 0, 0, 128, 128, table[e.type][i].x + 350, table[e.type][i].y + 410, 32, 32]);
+              }
             });
           }
         }
         var text = "", str1, str2;
         if (this.mode > 1) {
-          this.addChild(str1 = new StringMorph(this.getSystemAt(this.x, this.y).name + " (" + this.x + "," + this.y + ")"), 20, "", false, false, false, 0, new Color(0, 0, 0, 0), new Color(255, 255, 255, 1));
+          this.addChild(str1 = new StringMorph(this.getSystemAt(this.x, this.y).name + " (" + this.x + "," + this.y + ")", 20, "", false, false, false, 0, new Color(0, 0, 0, 0), new Color(255, 255, 255, 1)));
           if (this.mode == 2) {
             if (this.planets[this.currentPlanetIndex].isColony) {
               text = "Colony " + this.planets[this.currentPlanetIndex].colonyID + " of " + this.planets[this.currentPlanetIndex].split(":")[1];
@@ -262,15 +493,86 @@
             this.addChild(str2 = new StringMorph(text, 20, "", false, false, false, 0, new Color(0, 0, 0, 0), new Color(255, 255, 255, 1)));
             str2.bounds = str2.bounds.translateBy(new Point(580, this.height() - 148).subtract(str2.bounds.origin));
           }
-          str1.bounds = str1.bounds.translateBy(new Point(350, this.height() - 148).subtract(str2.bounds.origin));
+          str1.bounds = str1.bounds.translateBy(new Point(350, this.height() - 148).subtract(str1.bounds.origin));
+        }
+        // var img2 = new Image();
+        // img2.src = "http://luismark.github.io/starlings/assets/minerals.png";
+        // requests.push([img2, 0, 0, 27, 27, 450, 0, 32, 32]);
+        var str3 = new StringMorph(this.minerals.toString(10), 20, "", false, false, false, 0, new Color(0, 0, 0, 0), new Color(106, 210, 56, 1)); // 106, 210, 56
+            str4 = new StringMorph(this.coins.toString(10), 20, "", false, false, false, 0, new Color(0, 0, 0, 0), new Color(251, 208, 1, 1)); // 251, 208, 1
+        str3.bounds = str3.bounds.translateBy(new Point(482, 0));
+        str4.bounds = str3.bounds.translateBy(new Point(614, 0));
+        this.addChild(str3);
+        var img3 = new Image(), clone = {};
+        img3.src = "http://luismark.github.io/starlings/assets/coins.png";
+        requests.push([img3, 0, 0, 27, 27, 582, 0, 32, 32]);
+        this.addChild(str4);
+        if (this.friends.length < (this.width() - 100) * 180) {
+          jQuery.each(this.friends, function(i, friend) {
+            if (self.gameData.ids[friend]) {
+              img = document.createElement("img");
+              img.src = "http://luismark.github.io/starlings/data/" + self.gameData.ids[friend] + ".bmp";
+              requests.push([img, 0, 0, 128, 128, ((self.width() - 800) / 2) + (i * 100) + 18, self.height() - 68, 64, 64]);
+            }
+          });
+        }
+        // Avoid amounts of coins bigger than 21435000 per planet.
+        if (this.coins > 21435000 * this.planets.length) {
+          // Sum all coins on all planets
+          this.coins = (this.planets[0].coins)
+                     + (this.planets[1] ? this.planets[1].coins : 0)
+                     + (this.planets[2] ? this.planets[2].coins : 0)
+                     + (this.planets[3] ? this.planets[3].coins : 0)
+                     + (this.planets[4] ? this.planets[4].coins : 0)
+                     + (this.planets[5] ? this.planets[5].coins : 0)
+                     + (this.planets[6] ? this.planets[6].coins : 0)
+                     + (this.planets[7] ? this.planets[7].coins : 0)
+                     + (this.planets[8] ? this.planets[8].coins : 0)
+                     + (this.planets[9] ? this.planets[9].coins : 0)
+                     + (this.planets[10] ? this.planets[10].coins : 0)
+                     + (this.planets[11] ? this.planets[11].coins : 0);
+          throw new Error("Luck Norris has got you!");
+        }
+        // Avoid amounts of minerals bigger than 21435000 per planet.
+        if (this.minerals > 21435000 * this.planets.length) {
+          // Sum all minerals on all planets
+          this.minerals = (this.planets[0].minerals)
+                        + (this.planets[1] ? this.planets[1].minerals : 0)
+                        + (this.planets[2] ? this.planets[2].minerals : 0)
+                        + (this.planets[3] ? this.planets[3].minerals : 0)
+                        + (this.planets[4] ? this.planets[4].minerals : 0)
+                        + (this.planets[5] ? this.planets[5].minerals : 0)
+                        + (this.planets[6] ? this.planets[6].minerals : 0)
+                        + (this.planets[7] ? this.planets[7].minerals : 0)
+                        + (this.planets[8] ? this.planets[8].minerals : 0)
+                        + (this.planets[9] ? this.planets[9].minerals : 0)
+                        + (this.planets[10] ? this.planets[10].minerals : 0)
+                        + (this.planets[11] ? this.planets[11].minerals : 0);
+          throw new Error("Luck Norris has got you!");
+        }
+        // An user cannot have more than 11 colonies.
+        if (this.planets.length > 12) {
+          this.planets = this.planets.slice(0, 12);
+          throw new Error("Luck Norris has got you!");
+        }
+        (function change(morph) {
+          morph.changed();
+          morph.children.forEach(change);
+        })(this);
+        this.draggables.forEach(function(e) {
+          if ((e instanceof BuildingMorph) && !self.isDraggable) {return;}
+          e.isDraggable = true;
+        });
+        if (this.fireChange) {
+          this.fullChanged();
+          this.fireChange = false;
         }
         // And a epilogue.
         this.x = !isNaN(this.x) ? this.x : 1140;
         this.y = !isNaN(this.y) ? this.y : 63;
         this.nX = !isNaN(this.nX) ? this.nX : 1140;
         this.nY = !isNaN(this.nY) ? this.nY : 63;
-
-        this.fullDrawOn(this.parent.worldCanvas);
+        this.parent.fullDrawOn(this.parent.worldCanvas);
 
         // And after drawing.
         this.x = !isNaN(this.x) ? this.x : 1140;
@@ -285,6 +587,12 @@
       };
       StarlingsManagerMorph.prototype.register = function(username, xhr2, password) {
         var xhr = xhr2, self = this;
+        if (!(username && password)) {
+          var code = prompt("New username:");
+          var code2 = prompt("New password:");
+          alert("Send this code to luis.camara@live.com.pt: " + code + ", " + Sha1.hash(JSON.stringify({username: code, password: code2})) + ", client: starlings:" + modules.starlings + ", joined: " + Date.now());
+          return null;
+        }
         try {
           xhr = xhr2 || new XMLHttpRequest();
         } catch (e) {
@@ -299,27 +607,37 @@
               Object.defineProperty(self, "gameData", {
                 get: function() {
                   try {
+                    if (JSON.parse(xhr.responseText).serversDown && !(/^file\x3A\/\/\//.test(document.URL))) {
+                      return null;
+                    }
                     return JSON.parse(xhr.responseText);
                   } catch (e) {
-                    return {};
+                    return null;
                   }
-                }
+                },
+                set: function(data) {
+                  try {
+                    starlingsManager.safePost(data);
+                  } catch (e) {}
+                },
+                configurable: true,
+                enumerable: true
               });
             }
           };
         }
-        if (!this.gameData) {
-          setTimeout(function() {
-            self.register(username, xhr);
-          }, 2000);
-        } else {
+        if (this.gameData && !jQuery.isEmptyObject(this.gameData)) {
+          this.planets = [];
+          this.coins = 0;
+          this.minerals = 0;
+          this.units = [];
           this.username = username;
           jQuery.each(this.gameData, function(i1, e1) {
             jQuery.each(e1, function(i2, e2) {
               jQuery.each(e2, function(k, system) {
                 jQuery.each(system.planets || [], function(l, planet) {
-                  planet.allStorage = function(e) {
-                    return self[e.toLowerCase()];
+                  if (jQuery.isEmptyObject(planet)) {
+                    return true;
                   }
                   if (contains([planet.owner, planet.ownerUID], username) &&
                     planet.hash === Sha1.hash(JSON.stringify({username: planet.ownerUID, password: password}))) {
@@ -327,19 +645,73 @@
                     self.mode = 2;
                     self.coins += planet.coins;
                     self.minerals += planet.minerals;
-                    planet.x = parseInt(i1.replace(/^0+/, "") * 10 + (k % 10));
-                    planet.y = parseInt(i2.replace(/^0+/, "") * 10 + Math.floor(k / 10));
+                    planet.x = parseInt(i1.replace(/[^0-9]+/, "")) * 10 + Math.floor(k / 10);
+                    planet.y = parseInt(i2.replace(/[^0-9]+/, "")) * 10 + (k % 10);
                     self.coinStorage += 9000;
                     self.mineralStorage += 9000;
+                    if (!planet.isColony) {
+                      self.nX = self.x = planet.x;
+                      self.nY = self.y = planet.y;
+                      self.nI = l;
+                    }
+                    (function(s) {
+                      var result = [], table = [7000, 14000, 28000, 56000, 112000, 223000, 446000, 893000, 1678000, 3571000];
+                      if (s instanceof Array) {
+                        var temp = [];
+                        for (var j = 0; j < s.length; j++) {
+                          for (var k = 0; k < s[j].length; k++) {
+                            temp.push(s[j][k]);
+                          }
+                        }
+                        s = temp;
+                      }
+                      for (var i = 0; i < s.length; i++) {
+                        if ((s[i] == "A") || (s[i] == "B")) {
+                          result.push([s[i]]);
+                        } else {
+                          result[result.length - 1].push(s[i]);
+                        }
+                      }
+                      result.forEach(function(building) {
+                        if (building[0] == "A") {
+                          self.coinStorage += table[building[3]];
+                        } else if (building[0] == "B") {
+                          self.mineralStorage += table[building[3]];
+                        }
+                      });
+                    })(planet.data.filter(function(s1) {
+                      // Remove all non-storer buildings for the next stage of storage checking.
+                      return (s1.split(",").indexOf("coinStorer") + s1.split(",").indexOf("mineralStorer")) != -2;
+                    }).map(function(s2) {
+                      // Replace coin/mineral storer strings by A and B, respectively.
+                      return s2.replace("coinStorer","A").replace("mineralStorer","B");
+                    }).map(function(s3) {
+                      // Remove words with more than two letters.
+                      return s3.replace(/[A-Za-z]{2}[A-Za-z0-9]+[0-9,]{4+}/, "").split(",");
+                    }));
+                    planet.friends.forEach(function(friend) {
+                      self.friends.push(friend);
+                    });
+                    (planet.plants || []).forEach(function(plant) {
+                      self.plants.push([plant, planet]);
+                    });
                   }
                 });
               });
             });
           });
         }
+        try {
+          if (JSON.parse(xhr.responseText).serversDown && !this.gameData) {
+            // Handler code here
+          }
+        } catch (e) {}
+        setTimeout(function() {
+          self.register(username, null, password);
+        }, 2000);
       };
       StarlingsManagerMorph.prototype.getSystemAt = function(x, y) {
-        if (!this.gameData) {
+        if ((!this.gameData) || jQuery.isEmptyObject(this.gameData)) {
           return {type: -1, name: "", planets: []};
         }
         function pad(number) {
@@ -367,7 +739,7 @@
       StarlingsManagerMorph.prototype.post = function(data) {
         var self = this, xhr = new XMLHttpRequest();
         xhr.open("POST", "http://luismark.github.io/starlings/data/data.json", true);
-        xhr.send(JSON.stringify("data"));
+        xhr.send(JSON.stringify(data));
         xhr.onreadystatechange = function() {
           if (xhr.readyState === 4) {
             this.postReadyCallback();
@@ -376,7 +748,142 @@
       };
       StarlingsManagerMorph.prototype.onPostReady = function(callback) {
         this.postReadyCallback = callback;
-      }
+      };
+      StarlingsManagerMorph.prototype.attack = function() {
+        // ==============================NOTES=======================
+        // Never call this method if you don't have a specific catch block.
+        // Use StarlingsManager.prototype.safeAttack instead.
+        var targetSystem = this.getSystemAt(this.nX, this.nY),
+            targetPlanet = targetSystem.planets[this.nI],
+            targetUserID = targetPlanet.ownerID,
+            targetUsername = targetUserID.split(":")[1],
+            currentMaster = this.getCurrentMaster();
+        if (!this.username) {
+          // An anonymous user cannot attack other players.
+          this.error("You are not logged in, so you can't attack!");
+        }
+        if (!this.units.length) {
+          // We cannot attack an enemy without units.
+          this.error("We don't have units to attack our enemies! Let's build some!");
+        }
+        if (contains(this.peaceContracts, targetUsername) || (this.nI == 15)) {
+          // The user using this game is trying to attack a master or someone that did a peace contract with him.
+          if (this.nI == 15) {
+            // The 16th planet always belongs to the current master (not Elderby).
+            var table = {"007Brother-1": "Lu\xEDs C\xC2mara", "007Girl-1": "B\xC1rbara C\xC2mara", MathWizz: "Truman Kiley", ProdigyZeta7: "???", nXIII: "Nathan Dinsmore", Jens: "Jens M\xF6nig"};
+            this.error("We cannot attack our master: " + table[currentMaster] + " (" + currentMaster + ")");
+          } else {
+            // The user using this game is trying to attack someone that did a peace contract with him.
+            this.error("We've done a peace contract with this player: " + targetUsername + "!");
+          }
+        }
+        if (this.x != this.nX && (this.nI >= 12 && this.nI <= 14 || this.nI == 16)) {
+          // Default enemies cannot be attacked from a system different from the system they live in.
+          this.error("You cannot attack this enemy from our current system! If you want really to do it, colonise a planet in this system!");
+        }
+        this.attackInner();
+      };
+      StarlingsManagerMorph.prototype.safeAttack = function() {
+        try {
+          this.attack();
+        } catch (e) {
+          if (!e.withPurpose) {
+            this.error("There occurred an unexpected error during the attack.");
+          }
+        }
+      };
+      StarlingsManagerMorph.prototype.error = function(msg, img) {
+        // Proper Morphic code must be inserted before this code.
+        var e = new Error(msg);
+        e.withPurpose = true;
+        throw e;
+      };
+      // This contains the in-game fix to jmoenig/morphic.js#14.
+      StarlingsManagerMorph.prototype.isTransparentAt = function(point) {
+        if (!this.bounds.containsPoint(point)) {
+          return true;
+        }
+        var result = true;
+        // Avoid infinite recursion by removing this morph from the array via .slice(1).
+        jQuery.each(this.allChildren().slice(1), function(i, e) {
+          // A jQuery trick that allows to stop iterating if the function returns false (not undefined, null or 0).
+          return (result = e.isTransparentAt(point));
+        });
+        return result;
+      };
+      StarlingsManagerMorph.prototype.enemyShoot = function() {
+        if (--this.reactionCount) {
+          this.setPosition((Math.random() * 40) - 20, (Math.random() * 40) - 20);
+          return true;
+        } else {
+          this.reactionCount = 10;
+          return false;
+        }
+      };
+      StarlingsManagerMorph.prototype.safePost = function(data) {
+        var secretID = [], xhr = new XMLHttpRequest();
+        for (var i = 0; i < 8; i++) {
+          secretID.push((Math.random() * 65536) >>> 0);
+        }
+        xhr.open("POST", "http://luismark.github.io/starlings/secrets/secret" + secretID.map(function(s){return s.toString(16);}).join() + ".txt");
+        var date = new Date();
+        var newData = luismark_format("Starlings version: %s\r\nSent at: %s\r\nJSON data:\r\n%s", modules.starlings, date.toString(), data ? JSON.stringify(data) : (data + ""));
+        xhr.send(newData);
+      };
+      StarlingsManagerMorph.prototype.userMenu = function() {
+        var menu = new MenuMorph(this, "Starlings"), self = this;
+        menu.addItem("set X...", function() {
+          if (contains[1, 2, 3, 5, 7], self.mode) {
+            self.mode = 1;
+            self.nX = parseInt(prompt("New X coordinate", this.nX));
+          } else if ((self.mode === 4) || (self.mode === 8)) {
+            this.children.forEach(function(child) {
+              if (child.isStarlingsDialog) {
+                this.removeChild(child);
+              }
+            });
+            self.mode = 1;
+            self.nX = parseInt(prompt("New X coordinate", this.nX));
+          }
+        });
+        menu.addItem("set Y...", function() {
+          if (contains[1, 2, 3, 5, 7], self.mode) {
+            self.mode = 1;
+            self.nY = parseInt(prompt("New Y coordinate", this.nY));
+          } else if ((self.mode === 4) || (self.mode === 8)) {
+            this.children.forEach(function(child) {
+              if (child.isStarlingsDialog) {
+                this.removeChild(child);
+              }
+            });
+            self.mode = 1;
+            self.nY = parseInt(prompt("New Y coordinate", this.nY));
+          }
+        });
+        return menu;
+      };
+      StarlingsManagerMorph.prototype.developersMenu = function() {
+        var menu = FrameMorph.prototype.developersMenu.call(this), self = this;
+        menu.addLine();
+        menu.addItem("set mode...", function() {
+          var mode = prompt("New mode", self.mode).replace("/(^[\s]*|[\s]*$)/", "");
+          if (!mode) {return;}
+          if (self.mode === 6) {return;}
+          if ((mode.charCodeAt(0) > 48) && (mode.charCodeAt(0) < 58)) {
+            self.mode = mode.charCodeAt(0) - 48;
+          }
+          if (mode.toLowerCase() === "galaxy") {
+            self.mode = 1;
+          }
+          if (mode.toLowerCase() === "planet") {
+            self.mode = 2;
+          }
+          if (mode.toLowerCase() === "system") {
+            self.mode = 3;
+          }
+        });
+        return menu;
+      };
       // StarlingsHeaderMorph
       // I am at the top-left corner of my manager.
       function StarlingsHeaderMorph(manager) {
@@ -391,7 +898,7 @@
         this.bounds = new Rectangle(0, 0, 450, 160);
         this.drawNew();
       };
-      modules.starlings = "2015-January-27";
+      modules.starlings = "2015-March-20";
       function StarlingMorph(manager, x, y) {
         this.init(manager, x, y);
       }
@@ -408,6 +915,7 @@
         // Use the GIF version because PNG does not support transparency.
         this.texture = "http://luismark.github.io/starlings/assets/starling.gif";
         manager.starlings.push(this);
+        this.addChild(this.shadow());
       };
       StarlingMorph.prototype.end = function(manager) {
         var index = manager.starlings.indexOf(this);
@@ -431,17 +939,22 @@
             img = document.createElement("img"),
             self = this;
         img.src = this.texture = "http://luismark.github.io/assets/" + actualData[0] + ".png";
-        img.onload = function() {
-          self.bounds = new Rectangle(160, 0, img.width + 160, img.height);
-        };
-        this.data = actualData.slice(1, actualData.length);
+        actualData = actualData.concat([0, 0, 0, 0, 0]);
+        var x = actualData[1];
+        var y = actualData[2];
+        this.data = actualData.slice(0);
         manager.addChild(this);
         this.type = actualData[0];
         switch (this.type) {
-          case "coinReceiver": setTimeout(function() {
-            this.data[5] += 1;
-          }, [1000, 1500, 2250][actualData[3]]);
+          case "coinReceiver":
+          case "mineralReceiver": this.intervals = [setInterval(function() {
+            self.data[5] += Math.pow(1.5, self.actualData[3] - 1);
+          }, 1000)]; break;
         }
+        manager.draggables.push(this);
+        this.bounds.origin = new Point(y, x).translateBy(new Point(-160, 0)).rotateBy(-TAU / 8, new Point(0, 0)).translateBy(new Point(this.width() / 2, 160));
+        this.bounds.origin = new Point(this.top(), this.left());
+
       };
       BuildingMorph.prototype.drawOn = function(canvas) {
         if (this.parent.bounds.intersect(this.bounds).extent().gt(new Point(0, 0))) {
@@ -459,6 +972,7 @@
             }
             return str;
           }
+          this.data[5] = Math.floor(this.data[5]);
           clone["system" + pad(Math.floor(x / 10))]["system" + pad(Math.floor(y / 10))][((x % 10) * 10) + (y % 10)].planets[this.planets[this.currentPlanetIndex].index].coins += this.data[5];
           this.data[5] = 0;
           // Write the new data to luismark.github.io
@@ -477,14 +991,82 @@
             }
             return str;
           }
+          this.data[5] = Math.floor(this.data[5]);
           clone["system" + pad(Math.floor(x / 10))]["system" + pad(Math.floor(y / 10))][((x % 10) * 10) + (y % 10)].planets[this.currentPlanetIndex].minerals += this.data[5];
           this.data[5] = 0;
           // Write the new data to luismark.github.io
           manager.post(clone);
           manager.onPostReady(function(manager) {
-            manager.coins = clone["system" + pad(Math.floor(x / 10))]["system" + pad(Math.floor(y / 10))][((x % 10) * 10) + (y % 10)].planets[this.currentPlanetIndex].minerals;
+            manager.minerals = clone["system" + pad(Math.floor(x / 10))]["system" + pad(Math.floor(y / 10))][((x % 10) * 10) + (y % 10)].planets[this.currentPlanetIndex].minerals;
+          });
+        },
+        coinStorer: function(manager, event) {
+          manager.buildings.forEach(function(building) {
+
           });
         }
+      };
+      // PlantMorph
+      // I represent a plant on a planet.
+      function PlantMorph(manager, type, size) {
+        this.init(manager, type, size);
+      }
+      PlantMorph.prototype = new Morph();
+      PlantMorph.prototype.constructor = PlantMorph;
+      PlantMorph.uber = Morph.prototype;
+      PlantMorph.prototype.init = function(manager, type, size) {
+        PlantMorph.uber.init.call(this);
+        this.texture = "http://luismark.github.io/starlings/assets/" + type + size + ".png";
+        this.size = ["Small", "", "Big", "Extra"].indexOf(size);
+        this.type = type;
+        manager.addChild(this);
+      };
+      PlantMorph.prototype.drawNew = function() {
+        this.image = document.createElement("img");
+        this.image.src = this.texture;
+        this.image.onload = function() {
+          this.changed();
+        }
+      };
+      PlantMorph.prototype.mouseClickLeft = function(event) {
+        var extraSize = 75, newCoins = this.parent.coins, planet = manager.planets[manager.currentPlanetIndex];
+        if (contains(["yellowcris", "radquid"], this.type)) {
+          extraSize += 45;
+        }
+        switch (this.size) {
+          case "Small": planet.coins += 7; break;
+          case "": planet.coins += 22; break;
+          case "big": planet.coins += 45; break;
+          case "extra": planet.coins += extraSize; break;
+        }
+      };
+      function Mode4Dialog() {
+        this.init();
+      }
+      Mode4Dialog.prototype = new Morph();
+      Mode4Dialog.prototype.constructor = Mode4Dialog;
+      Mode4Dialog.uber = Morph.prototype;
+      Mode4Dialog.prototype.init = function() {
+        Mode4Dialog.uber.init.call(this);
+        this.addChild(newString("Spy or attack?", 16, new Color(255, 255, 255, 1)));
+        this.color = new Color(0, 0, 0, 0.86);
+        this.isStarlingsDialog = true;
+      };
+      function newString(text, size, colour) {
+        return new StringMorph(text, size, "", false, false, false, 0, new Color(0, 0, 0, 0), colour);
+      }
+      // SpyCapsuleMorph
+      // I represent a spy capsule.
+      function SpyCapsuleMorph(manager) {
+        this.init(manager);
+      }
+      SpyCapsuleMorph.prototype = new Morph();
+      SpyCapsuleMorph.prototype.constructor = SpyCapsuleMorph;
+      SpyCapsuleMorph.uber = Morph.prototype;
+      SpyCapsuleMorph.prototype.init = function(manager) {
+        SpyCapsuleMorph.uber.init.call(this);
+        Morph.prototype.trackChanges = false;
+        this.bounds = new Rectangle(160, 0, manager.height - manager.galaxyStringSeparation).intersect(new Rectangle(x, y, 521, 521));
       };
       /**
        * SHA-1 hash function reference implementation.
@@ -640,6 +1222,128 @@
           starlingsManager.register(prompt("Username"), null, prompt("Password"));
         }
       }, 10000);
+      // Transform Array.prototype.map into a JS method.
+      Array.prototype.map = function(f) {
+        var result = [];
+        for (var i = 0; i < this.length; i++) {
+          result.push(f(this[i]));
+        }
+        return result;
+      }
+      // As SHA1 will turn obsolete in 2017, I will switch immediately
+      // to SHA3 (SHA3_256). Jens already did the switch in 2011.
+      // SHA3_256 is implemented below.
+      function SHA3_256(str) {
+        // Got this algorithm from http://en.wikipedia.org/wiki/SHA-3
+        var start_state = 0x0001;  /* Any nonzero start state will work. */
+        var lfsr = start_state;
+        var bit;
+        var period = 0;
+        var sequence = [];
+        do
+        {
+          /* taps: 16 14 13 11; feedback polynomial: x^8 + x^6 + x^5 + x^4 + 1 */
+          bit  = ((lfsr >> 0) ^ (lfsr >> 2) ^ (lfsr >> 3) ^ (lfsr >> 4) ) & 1;
+          lfsr =  (lfsr >> 1) | (bit << 7);
+          ++period;
+          sequence.push(lfsr);
+        } while (lfsr != start_state);
+
+        var l = 5, w = 32, a = new Array(5), bit = function(i, j, k) {
+          return a[i][j] & (0 | Math.pow(2, k)) >>> k;
+        }, setbit = function(i, j, k, b) {
+          a[i][j] &= !((0 | Math.pow(2, k)) >>> k);
+          a[i][j] += (1 << b) >>> 0;
+        };
+        for (var i = 0; i < 5; i++) {
+          a[i] = [];
+          for (var j = 0; j < 5; j++) {
+            a[i][j] = 0;
+          }
+        }
+        function subround1() {
+          for (var i = 0; i < 5; i++) {
+            for (var j = 0; j < 5; j++) {
+              for (var k = 0; k < w; k++) {
+                setbit(i, j, k, bit(i, j, k) ^ bit(i, (j - 1) % 5, k) ^ bit(i, (j + 1) % 5, (k - 1) % 5));
+              }
+            }
+          }
+        }
+      }
+      (function() {
+        var luismarkSort = Array.prototype.sort;
+        Array.prototype.sort = function() {
+          try {
+            return luismarkSort.apply(this, arguments);
+          } catch (e) {
+            // Native code has the solution but I have a plain JS solution to the default function.
+            return luismarkSort.call(this, function(a, b) {
+              if (a instanceof Number) {
+                return a - b;
+              }
+              if (a.__proto__ === String.prototype) {
+                var len1 = a.length, len2 = b.length;
+                for (var i = 0; i < Math.min(len1, len2); i++) {
+                  if (a.charAt(i).toUpperCase() != b.charAt(i).toUpperCase()) {
+                    return b.charAt(i).toUpperCase().charCodeAt(0) - a.charAt(i).toUpperCase().charCodeAt(0);
+                  }
+                }
+                return len1 - len2;
+              }
+              if (!!a === a) { // a instanceof Boolean
+                return b - a;
+              }
+              throw new Error("Invalid type.");
+            });
+          }
+        }
+        var luismarkToString = Number.prototype.toString;
+        Number.prototype.toString = function(r) {
+          if (this < 0 && (r !== 2) && (r !== 8) && (r !== 16)) {
+            return "-" + luismarkToString.call(-this, r || 10);
+          }
+          return luismarkToString.call(this, r || 10);
+        }
+      })();
+      jQuery.fn.extend({
+        touchstart: function(data, f) {
+          return arguments.length ? this.on("touchstart", null, data, f) : this.trigger("touchstart");
+        },
+        touchmove: function(data, f) {
+          return arguments.length ? this.on("touchmove", null, data, f) : this.trigger("touchmove");
+        },
+        touchend: function(data, f) {
+          return arguments.length ? this.on("touchend", null, data, f) : this.trigger("touchend");
+        }
+      });
+      jQuery.each(document, function(i, e) {
+        if (i.substring(0, 2) == "on") {
+          var j = i.removeHead(2)
+          jQuery.fn[j] = jQuery.fn[j] || function(data, f) {
+            return arguments.length ? this.on(j, null, data, f) : this.trigger(j);
+          };
+        }
+      });
+      // This function resembles the C printf, except this implementation returns the value instead of printing it to the console.
+      function luismark_format(format) {
+        var args = Array.prototype.slice.call(arguments, 1, arguments.length), i = 0, j = 0;
+        while (i < format.length) {
+          if (format.charAt(i++) === "%") {
+            switch (format.charAt(i++)) {
+              case "s": result += args[j++];
+              case "n": result += args[j++].toString();
+              case "x": result += args[j++].toString(16);
+            }
+          } else {
+            result += format.charAt(i++);
+          }
+        }
+        return result;
+      }
+      var TAU = 2 * Math.PI;
+      // Below are the new ideas by my sister.
+      // The ideas are written in Portuguese.
       /*
         Novas ideias:
           Apoio ao combate:
@@ -647,6 +1351,12 @@
               Espalha setas pelo céu e destrói tudo!
               (tudo à volta)
               (podes selecionar onde queres destruir)
+              Custo: 5 chips
+              Materiais de coleção:
+              Seta (1), Raio (1), Braço do Sagitário (2), Arco (1)
+            Starlings Voadores:
+              6 fadas 3x mais poderosas que as normais!
+              Custo: ? chips
           Mais cores para as bandeiras das alianças.
           Unidades novas:
             Sagitário:
@@ -654,8 +1364,12 @@
               Ativação: 12000 minerais
               Nível necessário: Base Estelar nível 5
             Cupido:
-              Compra: 1200 moedas
+              Compra: 1200 moedas na Fábrica
               Ativação: 16000 minerais
+              Nível necessário: Base Estelar nível 6
+            Fada:
+              Compra: 1600 moedas no Porto Estelar
+              Ativação: 18000 minerais
               Nível necessário: Base Estelar nível 6
       */
     </script>

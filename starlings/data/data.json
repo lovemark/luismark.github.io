@@ -1,4 +1,34 @@
 {
+  "system008": {
+    "system059": [
+      {},{},{},{},{},{},{},{},{},{},
+      {},{},{},{},{},{},{},{},{},{},
+      {
+        "type": 5,
+        "name": "Is Deeps",
+        "planets": [{},{},{},{},{},{},{},{},{},{},{
+          "owner": "spilgames-87:chuchu2007",
+          "ownerUID": "chuchu2007",
+          "isColony": false,
+          "squareSize": 25,
+          "coins": 257220000,
+          "minerals": 257220000,
+          "data": [
+            "mineralReceiver,0,0,10,360360,mineralReceiver,200,0,10,360360",
+            "mineralReceiver,400,0,10,360360,mineralReceiver,0,200,10,360360",
+            "mineralReceiver,0,400,10,360360,defensiveHousemate,225,225,3,520",
+            "wall,200,200,5,27000,wall,225,200,5,27000",
+            "wall,250,200,5,27000,wall,275,200,5,27000"
+          ],
+          "index": 10,
+          "avatarPresent": false,
+          "level": 476,
+          "friends": ["boy7553"],
+          "type": 5
+        }]
+      }
+    ]
+  },
   "system114": {
     "system006": [
       {
@@ -30,8 +60,14 @@
             "coinStorer,0,150,6,0,mineralStorer,150,150,4,0",
             "weapon02,300,50,1,6000,weapon01,60,300,1,6000"
           ],
-          "hash": "657af69f85cdf510d5f3d1ee57e9ed327ca6e0e2",
-          "index": 0
+          "hash": "824f258bd7fea72ff3f6eb4534914caf90b0f472",
+          "index": 0,
+          "friends": ["luisa625629777", "chuchu2007"],
+          "avatarPresent": true,
+          "level": 16,
+          "experience": 18815,
+          "masterID": 2,
+          "type": 2
         }]
       }
     ]
@@ -44,17 +80,36 @@
         "type": 5,
         "name": "Ray Oman",
         "planets": [{
+          "ownerID": "63572722",
           "owner": "spilgames-87:luisa625629777",
-          "ownerUID": "spielen.com:luisa625629777",
+          "ownerUID": "luisa625629777",
           "isColony": false,
           "squareSize": 25,
-          "minerals": 590000,
-          "coins": 931040,
-          "data": [],
+          "minerals": 46391,
+          "coins": 54032,
+          "data": [
+            "mineralReceiver,75,0,1,360,mineralReceiver,225,0,2,990",
+            "coinReceiver,375,0,2,990,coinReceiver,525,0,1,360",
+            "laboratory,725,0,2,starBase,900,0,4"
+          ],
           "hash": "2d5cf6c8c4382384278403b7b74da05d7036ef46",
-          "avatarPresent": true
+          "avatarPresent": true,
+          "friends": ["boy7553"],
+          "level": 18,
+          "experience": 23198,
+          "masterID": 5,
+          "type": 5
         }]
       }
     ]
-  }
+  },
+  "ids": {
+    "boy7553": "58987689",
+    "luisa625629777": "63572722"
+  },
+  "serversDown": false,
+  "serversDown1Reason": "There was a massive golem attack to Luís Câmara (luis140219 on GitHub)!",
+  "serversDown1Duration": 1814400000.0,
+  "serversDown1Start": 1424246400000,
+  "serversDown1ReasonCode": 17697
 }
