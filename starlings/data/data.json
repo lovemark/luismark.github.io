@@ -85,14 +85,18 @@
           "ownerUID": "luisa625629777",
           "isColony": false,
           "squareSize": 25,
-          "minerals": 590000,
-          "coins": 931040,
-          "data": [],
+          "minerals": 46391,
+          "coins": 54032,
+          "data": [
+            "mineralReceiver,75,0,1,360,mineralReceiver,225,0,2,990",
+            "coinReceiver,375,0,2,990,coinReceiver,525,0,1,360",
+            "laboratory,725,0,2,starBase,900,0,4"
+          ],
           "hash": "2d5cf6c8c4382384278403b7b74da05d7036ef46",
           "avatarPresent": true,
           "friends": ["boy7553"],
           "level": 18,
-          "experience": 22000,
+          "experience": 23198,
           "masterID": 5,
           "type": 5
         }]
@@ -104,7 +108,7 @@
     "luisa625629777": "63572722"
   },
   "serversDown": false,
-  "serversDown1Reason": "There was a massive golem attack to Luís Câmara (luis140219 on GitHub)!",
+  "serversDown1Reason": "There was a massive golem attack to LuÃ­s CÃ¢mara (luis140219 on GitHub)!",
   "serversDown1Duration": 1814400000.0,
   "serversDown1Start": 1424246400000,
   "serversDown1ReasonCode": 17697
